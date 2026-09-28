@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chinese HSK Vocab Master - Unified</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --skip: #f59e0b;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 1rem;
+    }
+
+    .game-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      width: 100%;
+      max-width: 600px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    @media (min-width: 640px) {
+      .game-card {
+        padding: 2rem;
+      }
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      text-align: left;
+    }
+
+    .grid-select {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .select-btn {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 0.5rem;
+      border-radius: 0.75rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .select-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .select-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    .btn-full-width {
+      grid-column: span 2;
+    }
+
+    .mode-bar {
+      display: flex;
+      gap: 0.35rem;
+      background: #0f172a;
+      padding: 0.35rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 0.55rem 0.4rem;
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      gap: 0.4rem;
+    }
+
+    .badge {
+      background: var(--border);
+      padding: 0.3rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .word-display {
+      text-align: center;
+      margin: 1rem 0;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .main-prompt {
+      font-size: clamp(2.4rem, 9vw, 3.5rem);
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.15;
+      word-break: break-word;
+    }
+
+    .main-prompt.english-mode {
+      font-size: clamp(1.3rem, 5vw, 1.8rem);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 0.75rem;
+      border: 2px solid var(--border);
+      background: #0f172a;
+      color: #fff;
+      font-size: 1.2rem;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    input[type="text"].error-shake {
+      border-color: var(--wrong);
+      animation: shake 0.3s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.65rem;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      touch-action: manipulation;
+    }
+
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-submit {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    .btn-skip {
+      background: var(--border);
+      color: var(--muted);
+    }
+
+    .btn-skip:hover {
+      color: #fff;
+      background: #475569;
+    }
+
+    .speaking-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .mic-btn {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      background: #0f172a;
+      color: var(--accent);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+      touch-action: manipulation;
+    }
+
+    .mic-btn:hover {
+      transform: scale(1.05);
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .mic-btn.listening {
+      background: var(--wrong);
+      border-color: var(--wrong);
+      color: #ffffff;
+      animation: pulse 1.2s infinite;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .mic-hint {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .heard-transcription {
+      font-size: 1.1rem;
+      color: #fff;
+      min-height: 1.6rem;
+      font-weight: 500;
+    }
+
+    .feedback {
+      text-align: center;
+      min-height: 2.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .feedback.wrong { color: var(--wrong); }
+    .feedback.info { color: var(--skip); }
+    .feedback.correct { color: var(--correct); }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .stat-box {
+      background: #0f172a;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+
+    .stat-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-item strong {
+      font-size: 1.25rem;
+    }
+
+    .result-section {
+      text-align: left;
+      margin-bottom: 1.2rem;
+    }
+
+    .result-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .result-title.skipped-title {
+      color: var(--skip);
+    }
+
+    .result-title.self-corrected-title {
+      color: var(--accent);
+    }
+
+    .review-box {
+      max-height: 160px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.65rem;
+      background: #0f172a;
+      font-size: 0.85rem;
+    }
+
+    .review-item {
+      padding: 0.4rem 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .review-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-card">
+    
+    <!-- Screen 1: Initial Selection Screen -->
+    <div id="setup-screen">
+      <h2 style="color: var(--accent); margin-bottom: 1.2rem; text-align: center; font-size: 1.5rem;">HSK Practice Setup</h2>
+      
+      <div class="section-title">1. Select Vocabulary Module</div>
+      <div class="grid-select">
+        <button type="button" class="select-btn" data-type="module" data-val="mod1">Module 1 (88 Words)</button>
+        <button type="button" class="select-btn" data-type="module" data-val="mod2">Module 2 (77 Words)</button>
+        <button type="button" class="select-btn" data-type="module" data-val="mod3">Module 3 (60 Words)</button>
+        <button type="button" class="select-btn" data-type="module" data-val="mod4">Module 4 (47 Words)</button>
+        <button type="button" class="select-btn" data-type="module" data-val="mod5">Module 5 (30 Words)</button>
+        <button type="button" class="select-btn active" data-type="module" data-val="mod6">Module 6 - New (60 Words)</button>
+        <button type="button" class="select-btn btn-full-width" data-type="module" data-val="all">All Modules (362 Words)</button>
+      </div>
+
+      <div class="section-title">2. Select Game Mode</div>
+      <div class="grid-select">
+        <button type="button" class="select-btn active" data-type="mode" data-val="pinyin">1. Type Pinyin</button>
+        <button type="button" class="select-btn" data-type="mode" data-val="meaning">2. Type Meaning</button>
+        <button type="button" class="select-btn" data-type="mode" data-val="hanzi">3. Type Hanzi</button>
+        <button type="button" class="select-btn" data-type="mode" data-val="speaking">4. Speak Hanzi 🎙️</button>
+      </div>
+
+      <button class="action-btn btn-submit" style="width: 100%; padding: 0.95rem; margin-top: 0.5rem;" onclick="startConfiguredGame()">Start Training</button>
+    </div>
+
+    <!-- Screen 2: Active Gameplay Screen -->
+    <div id="play-screen" style="display: none;">
+      <div class="mode-bar">
+        <button class="mode-btn" id="tab-pinyin" onclick="switchModeInGame('pinyin')">Pinyin</button>
+        <button class="mode-btn" id="tab-meaning" onclick="switchModeInGame('meaning')">Meaning</button>
+        <button class="mode-btn" id="tab-hanzi" onclick="switchModeInGame('hanzi')">Hanzi</button>
+        <button class="mode-btn" id="tab-speaking" onclick="switchModeInGame('speaking')">Speak</button>
+      </div>
+
+      <div class="header">
+        <div>Progress: <span class="badge" id="progress-text">0 / 0</span></div>
+        <div>Time: <span class="badge" id="timer-text">00:00</span></div>
+        <div>Score: <span class="badge" id="score-text">0</span></div>
+      </div>
+
+      <div class="word-display">
+        <div class="main-prompt" id="main-prompt">...</div>
+      </div>
+
+      <div class="feedback" id="feedback-text"></div>
+
+      <!-- Text Inputs for Typing Modes -->
+      <div class="input-group" id="text-input-section">
+        <input type="text" id="answer-input" placeholder="Type answer..." autocomplete="off" autocapitalize="none" spellcheck="false" />
+        <div class="btn-row">
+          <button class="action-btn btn-skip" type="button" onclick="handleSkip()">Skip Word</button>
+          <button class="action-btn btn-submit" type="button" onclick="checkAnswer()">Submit</button>
+        </div>
+      </div>
+
+      <!-- Speaking UI Section -->
+      <div id="speaking-section" style="display: none;">
+        <div class="speaking-container">
+          <button type="button" class="mic-btn" id="mic-btn" onclick="toggleSpeechRecognition()">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+          <span class="mic-hint" id="mic-status-label">Tap microphone to speak</span>
+          <div class="heard-transcription" id="transcription-text"></div>
+        </div>
+        <div class="btn-row">
+          <button class="action-btn btn-skip" type="button" onclick="handleSkip()">Skip Word</button>
+        </div>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Results Screen -->
+    <div id="results-screen" style="display: none; text-align: center;">
+      <h2 style="color: var(--accent); margin-bottom: 1.25rem; font-size: 1.5rem;">Session Complete! 🎉</h2>
+      
+      <div class="stat-box">
+        <div class="stat-item">
+          <span>First-Try Correct</span>
+          <strong style="color: var(--correct);" id="final-correct">0</strong>
+        </div>
+        <div class="stat-item">
+          <span>Skipped</span>
+          <strong style="color: var(--skip);" id="final-skipped">0</strong>
+        </div>
+        <div class="stat-item">
+          <span>Total Time</span>
+          <strong style="color: var(--accent);" id="final-time">00:00</strong>
+        </div>
+      </div>
+
+      <div id="skipped-wrapper" class="result-section" style="display: none;">
+        <div class="result-title skipped-title">The skipped words are:</div>
+        <div class="review-box" id="skipped-list"></div>
+      </div>
+
+      <div id="self-corrected-wrapper" class="result-section" style="display: none;">
+        <div class="result-title self-corrected-title">The words you got wrong first and then corrected yourself:</div>
+        <div class="review-box" id="self-corrected-list"></div>
+      </div>
+
+      <div class="btn-row" style="margin-top: 1.25rem;">
+        <button class="action-btn btn-skip" onclick="showSetupScreen()">Change Setup</button>
+        <button class="action-btn btn-submit" onclick="startConfiguredGame()">Play Again</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const MODULE_1 = [
+      { hanzi: "首都", pinyin: "shǒudū", pinyinRaw: "shoudu", pos: "n.", displayAnswer: "capital / capital city", answers: ["capital", "capital city", "main city"] },
+      { hanzi: "活动", pinyin: "huódòng", pinyinRaw: "huodong", pos: "n./v.", displayAnswer: "activity / event", answers: ["activity", "event", "activities", "action", "move"] },
+      { hanzi: "肯定", pinyin: "kěndìng", pinyinRaw: "kending", pos: "adv./adj.", displayAnswer: "sure / definitely / certain", answers: ["sure", "definitely", "certain", "certainly", "positive", "affirm"] },
+      { hanzi: "提前", pinyin: "tíqián", pinyinRaw: "tiqian", pos: "v./adv.", displayAnswer: "in advance / ahead of time", answers: ["in advance", "ahead of time", "early", "beforehand", "prior", "in advance of"] },
+      { hanzi: "出发", pinyin: "chūfā", pinyinRaw: "chufa", pos: "v.", displayAnswer: "leave / start off / depart", answers: ["leave", "start off", "set off", "depart", "departure", "set out"] },
+      { hanzi: "堵车", pinyin: "dǔchē", pinyinRaw: "duche", pos: "v.", displayAnswer: "traffic jam / congestion", answers: ["traffic jam", "traffic", "jam", "congestion", "heavy traffic", "traffic congestion"] },
+      { hanzi: "乘坐", pinyin: "chéngzuò", pinyinRaw: "chengzuo", pos: "v.", displayAnswer: "to take (car/plane) / to ride", answers: ["take", "to take", "ride", "to ride", "board", "travel by"] },
+      { hanzi: "等等", pinyin: "děngděng", pinyinRaw: "dengdeng", pos: "aux.", displayAnswer: "and so on / etc.", answers: ["and so on", "etc", "etc.", "and so forth", "and such"] },
+      { hanzi: "交通工具", pinyin: "jiāotōng gōngjù", pinyinRaw: "jiaotonggongju", pos: "n.", displayAnswer: "vehicle / means of transport", answers: ["vehicle", "transportation", "means of transport", "transport", "means of transportation"] },
+      { hanzi: "广播", pinyin: "guǎngbō", pinyinRaw: "guangbo", pos: "n./v.", displayAnswer: "broadcast / radio announcement", answers: ["broadcast", "broadcasting", "radio broadcast", "announcement"] },
+      { hanzi: "按照", pinyin: "ànzhào", pinyinRaw: "anzhao", pos: "prep.", displayAnswer: "according to / based on", answers: ["according to", "in accordance with", "based on", "following"] },
+      { hanzi: "提醒", pinyin: "tíxǐng", pinyinRaw: "tixing", pos: "v.", displayAnswer: "to remind / warn", answers: ["remind", "to remind", "warn", "reminder"] },
+      { hanzi: "确实", pinyin: "quèshí", pinyinRaw: "queshi", pos: "adv.", displayAnswer: "indeed / truly / really", answers: ["indeed", "really", "truly", "certainly", "surely", "actually"] },
+      { hanzi: "难受", pinyin: "nánshòu", pinyinRaw: "nanshou", pos: "adj.", displayAnswer: "uncomfortable / feeling unwell", answers: ["uncomfortable", "feel bad", "unwell", "ill", "painful", "sick"] },
+      { hanzi: "凉快", pinyin: "liángkuai", pinyinRaw: "liangkuai", pos: "adj.", displayAnswer: "cool (weather) / pleasantly cool", answers: ["cool", "pleasantly cool", "nice and cool", "chilly"] },
+      { hanzi: "行", pinyin: "xíng", pinyinRaw: "xing", pos: "adj./v.", displayAnswer: "ok / capable / fine", answers: ["ok", "okay", "capable", "all right", "fine", "acceptable", "good"] },
+      { hanzi: "顺便", pinyin: "shùnbiàn", pinyinRaw: "shunbian", pos: "adv.", displayAnswer: "in passing / on one's way / by the way", answers: ["in passing", "on one's way", "conveniently", "by the way", "while at it"] },
+      { hanzi: "杂志", pinyin: "zázhì", pinyinRaw: "zazhi", pos: "n.", displayAnswer: "magazine / journal", answers: ["magazine", "journal", "periodical"] },
+      { hanzi: "速度", pinyin: "sùdù", pinyinRaw: "sudu", pos: "n.", displayAnswer: "speed / velocity", answers: ["speed", "velocity", "rate", "pace"] },
+      { hanzi: "甚至", pinyin: "shènzhì", pinyinRaw: "shenzhi", pos: "conj./adv.", displayAnswer: "even / even to the extent that", answers: ["even", "even to the extent that", "so far as to", "even so"] },
+      { hanzi: "节约", pinyin: "jiéyuē", pinyinRaw: "jieyue", pos: "v.", displayAnswer: "to save / economize", answers: ["save", "to save", "economize", "frugal", "cut back", "conservation"] },
+      { hanzi: "距离", pinyin: "jùlí", pinyinRaw: "juli", pos: "n.", displayAnswer: "distance / range", answers: ["distance", "range", "gap", "interval"] },
+      { hanzi: "公里", pinyin: "gōnglǐ", pinyinRaw: "gongli", pos: "m.", displayAnswer: "kilometre (km)", answers: ["kilometer", "kilometre", "km"] },
+      { hanzi: "因此", pinyin: "yīncǐ", pinyinRaw: "yinci", pos: "conj.", displayAnswer: "therefore / thus / so", answers: ["therefore", "thus", "consequently", "so", "hence"] },
+      { hanzi: "气候", pinyin: "qìhòu", pinyinRaw: "qihou", pos: "n.", displayAnswer: "climate / weather conditions", answers: ["climate", "weather conditions", "weather"] },
+      { hanzi: "区别", pinyin: "qūbié", pinyinRaw: "qubie", pos: "n./v.", displayAnswer: "difference / distinction", answers: ["difference", "distinction", "distinguish", "differentiate", "diff"] },
+      { hanzi: "温度", pinyin: "wēndù", pinyinRaw: "wendu", pos: "n.", displayAnswer: "temperature", answers: ["temperature", "temp"] },
+      { hanzi: "差不多", pinyin: "chàbuduō", pinyinRaw: "chabuduo", pos: "adv./adj.", displayAnswer: "almost / nearly / about the same", answers: ["almost", "nearly", "about the same", "roughly", "close enough"] },
+      { hanzi: "暖和", pinyin: "nuǎnhuo", pinyinRaw: "nuanhuo", pos: "adj.", displayAnswer: "warm (weather/feeling)", answers: ["warm", "nice and warm", "cozy", "mild"] },
+      { hanzi: "叶子", pinyin: "yèzi", pinyinRaw: "yezi", pos: "n.", displayAnswer: "leaf / leaves", answers: ["leaf", "leaves", "foliage"] },
+      { hanzi: "不过", pinyin: "búguò", pinyinRaw: "buguo", pos: "conj.", displayAnswer: "but / however / only", answers: ["but", "however", "only", "yet", "though"] },
+      { hanzi: "可惜", pinyin: "kěxī", pinyinRaw: "kexi", pos: "adj.", displayAnswer: "it's a pity / unfortunately", answers: ["pity", "what a pity", "unfortunately", "a pity", "too bad", "unfortunate"] },
+      { hanzi: "抱歉", pinyin: "bàoqiàn", pinyinRaw: "baoqian", pos: "adj./v.", displayAnswer: "sorry / excuse me / apologize", answers: ["sorry", "apologize", "excuse me", "apology", "pardon"] },
+      { hanzi: "本来", pinyin: "běnlái", pinyinRaw: "benlai", pos: "adv./adj.", displayAnswer: "originally / at first / naturally", answers: ["originally", "at first", "natural", "initially", "essentially"] },
+      { hanzi: "篇", pinyin: "piān", pinyinRaw: "pian", pos: "m.", displayAnswer: "piece of writing / article (M.)", answers: ["piece of writing", "article", "sheet", "piece", "essay", "paper"] },
+      { hanzi: "材料", pinyin: "cáiliào", pinyinRaw: "cailiao", pos: "n.", displayAnswer: "material / data", answers: ["material", "materials", "data", "ingredient", "ingredients"] },
+      { hanzi: "遍", pinyin: "biàn", pinyinRaw: "bian", pos: "m.", displayAnswer: "time / once through (action)", answers: ["time", "times", "once through", "all over", "round"] },
+      { hanzi: "交", pinyin: "jiāo", pinyinRaw: "jiao", pos: "v.", displayAnswer: "to hand over / submit / pay", answers: ["hand over", "to hand over", "pay", "submit", "deliver", "give"] },
+      { hanzi: "各", pinyin: "gè", pinyinRaw: "ge", pos: "pron.", displayAnswer: "each / every / various", answers: ["each", "every", "various", "different", "all"] },
+      { hanzi: "导游", pinyin: "dǎoyóu", pinyinRaw: "daoyou", pos: "n.", displayAnswer: "tour guide", answers: ["guide", "tour guide", "courier"] },
+      { hanzi: "集合", pinyin: "jíhé", pinyinRaw: "jihe", pos: "v.", displayAnswer: "to gather / assemble", answers: ["gather", "to gather", "assemble", "rally", "meet", "get together"] },
+      { hanzi: "京剧", pinyin: "jīngjù", pinyinRaw: "jingju", pos: "n.", displayAnswer: "Beijing opera / Peking opera", answers: ["beijing opera", "peking opera", "chinese opera"] },
+      { hanzi: "座位", pinyin: "zuòwèi", pinyinRaw: "zuowei", pos: "n.", displayAnswer: "seat / place", answers: ["seat", "place", "sitting place"] },
+      { hanzi: "联系", pinyin: "liánxì", pinyinRaw: "lianxi", pos: "v./n.", displayAnswer: "to contact / connect", answers: ["contact", "to contact", "get in touch", "connect", "reach"] },
+      { hanzi: "报名", pinyin: "bàomíng", pinyinRaw: "baoming", pos: "v.", displayAnswer: "to sign up / register / enroll", answers: ["sign up", "to sign up", "register", "enroll", "enter", "apply"] },
+      { hanzi: "家具", pinyin: "jiājù", pinyinRaw: "jiaju", pos: "n.", displayAnswer: "furniture", answers: ["furniture", "furnishings"] },
+      { hanzi: "并且", pinyin: "bìngqiě", pinyinRaw: "bingqie", pos: "conj.", displayAnswer: "and / also / moreover / furthermore", answers: ["and", "also", "and also", "moreover", "besides", "furthermore", "in addition"] },
+      { hanzi: "价格", pinyin: "jiàgé", pinyinRaw: "jiage", pos: "n.", displayAnswer: "price / cost", answers: ["price", "cost", "fee", "rate"] },
+      { hanzi: "值得", pinyin: "zhídé", pinyinRaw: "zhide", pos: "v.", displayAnswer: "be worth / worthwhile / deserve", answers: ["worth", "be worth", "worthwhile", "deserve", "merit"] },
+      { hanzi: "考虑", pinyin: "kǎolǜ", pinyinRaw: "kaolv", pos: "v.", displayAnswer: "to consider / think over", answers: ["consider", "to consider", "think over", "deliberate", "ponder"] },
+      { hanzi: "难道", pinyin: "nándào", pinyinRaw: "nandao", pos: "adv.", displayAnswer: "could it be that... (rhetorical)", answers: ["could it be", "could it be that", "dont tell me", "rhetorical particle", "is it possible"] },
+      { hanzi: "严重", pinyin: "yánzhòng", pinyinRaw: "yanzhong", pos: "adj.", displayAnswer: "serious / severe / critical", answers: ["serious", "severe", "grave", "critical", "heavy"] },
+      { hanzi: "擦", pinyin: "cā", pinyinRaw: "ca", pos: "v.", displayAnswer: "to wipe / scratch / rub clean", answers: ["wipe", "to wipe", "scratch", "rub", "clean", "polish", "erase"] },
+      { hanzi: "恐怕", pinyin: "kǒngpà", pinyinRaw: "kongpa", pos: "adv.", displayAnswer: "be afraid that / perhaps / fear", answers: ["afraid", "be afraid of", "perhaps", "probably", "fear", "i am afraid"] },
+      { hanzi: "允许", pinyin: "yǔnxǔ", pinyinRaw: "yunxu", pos: "v.", displayAnswer: "to allow / permit / permission", answers: ["allow", "to allow", "permit", "permission", "let"] },
+      { hanzi: "无论", pinyin: "wúlùn", pinyinRaw: "wulun", pos: "conj.", displayAnswer: "no matter what / regardless of", answers: ["no matter what", "regardless", "whether", "no matter", "regardless of", "no matter how"] },
+      { hanzi: "危险", pinyin: "wēixiǎn", pinyinRaw: "weixian", pos: "adj./n.", displayAnswer: "dangerous / peril / hazard", answers: ["dangerous", "danger", "hazard", "perilous", "risky"] },
+      { hanzi: "情况", pinyin: "qíngkuàng", pinyinRaw: "qingkuang", pos: "n.", displayAnswer: "situation / condition / circumstances", answers: ["situation", "condition", "circumstances", "state", "case"] },
+      { hanzi: "稍微", pinyin: "shāowēi", pinyinRaw: "shaowei", pos: "adv.", displayAnswer: "slightly / a little bit", answers: ["slightly", "a little", "a little bit", "somewhat", "a bit"] },
+      { hanzi: "方面", pinyin: "fāngmiàn", pinyinRaw: "fangmian", pos: "n.", displayAnswer: "aspect / respect / side", answers: ["aspect", "respect", "side", "facet", "field"] },
+      { hanzi: "左右", pinyin: "zuǒyòu", pinyinRaw: "zuoyou", pos: "n.", displayAnswer: "about / or so / around", answers: ["about", "or so", "around", "approximately", "nearly"] },
+      { hanzi: "云", pinyin: "yún", pinyinRaw: "yun", pos: "n.", displayAnswer: "cloud", answers: ["cloud", "clouds"] },
+      { hanzi: "照", pinyin: "zhào", pinyinRaw: "zhao", pos: "v.", displayAnswer: "to take a photo / photograph", answers: ["photograph", "to photograph", "take photo", "photo", "shine", "picture"] },
+      { hanzi: "质量", pinyin: "zhìliàng", pinyinRaw: "zhiliang", pos: "n.", displayAnswer: "quality", answers: ["quality"] },
+      { hanzi: "剩", pinyin: "shèng", pinyinRaw: "sheng", pos: "v.", displayAnswer: "be left over / remain", answers: ["remain", "left over", "be left over", "surplus", "left"] },
+      { hanzi: "加油站", pinyin: "jiāyóuzhàn", pinyinRaw: "jiayouzhan", pos: "n.", displayAnswer: "gas station / petrol station", answers: ["gas station", "petrol station", "service station", "fuel station"] },
+      { hanzi: "大概", pinyin: "dàgài", pinyinRaw: "dagai", pos: "adv./adj.", displayAnswer: "probably / roughly / likely", answers: ["probably", "roughly", "approximate", "likely", "about"] },
+      { hanzi: "来不及", pinyin: "láibují", pinyinRaw: "laibuji", pos: "v.", displayAnswer: "there's not enough time / too late", answers: ["not enough time", "there is not enough time", "too late", "no time"] },
+      { hanzi: "航班", pinyin: "hángbān", pinyinRaw: "hangban", pos: "n.", displayAnswer: "flight / scheduled flight", answers: ["flight", "scheduled flight", "plane"] },
+      { hanzi: "来得及", pinyin: "láidejí", pinyinRaw: "laideji", pos: "v.", displayAnswer: "there is still time / in time", answers: ["there is still time", "in time", "have enough time", "make it"] },
+      { hanzi: "随着", pinyin: "suízhe", pinyinRaw: "suizhe", pos: "prep.", displayAnswer: "along with / in the wake of", answers: ["along with", "as", "in the wake of", "with", "following"] },
+      { hanzi: "科学", pinyin: "kēxué", pinyinRaw: "kexue", pos: "n./adj.", displayAnswer: "science / scientific", answers: ["science", "scientific"] },
+      { hanzi: "技术", pinyin: "jìshù", pinyinRaw: "jishu", pos: "n.", displayAnswer: "technology / technique / skill", answers: ["technology", "technique", "skill", "tech"] },
+      { hanzi: "发展", pinyin: "fāzhǎn", pinyinRaw: "fazhan", pos: "v./n.", displayAnswer: "to develop / development", answers: ["develop", "to develop", "development", "growth", "expand"] },
+      { hanzi: "原来", pinyin: "yuánlái", pinyinRaw: "yuanlai", pos: "adv./adj.", displayAnswer: "original / former / turned out that", answers: ["original", "former", "originally", "turned out", "as it turns out", "formerly"] },
+      { hanzi: "寄", pinyin: "jì", pinyinRaw: "ji", pos: "v.", displayAnswer: "to send / mail / post", answers: ["send", "to send", "mail", "post"] },
+      { hanzi: "网站", pinyin: "wǎngzhàn", pinyinRaw: "wangzhan", pos: "n.", displayAnswer: "website / web page", answers: ["website", "site", "web page", "webpage", "web"] },
+      { hanzi: "任何", pinyin: "rènhé", pinyinRaw: "renhe", pos: "pron.", displayAnswer: "any / whatever / whichever", answers: ["any", "whatever", "whichever", "anyone"] },
+      { hanzi: "消息", pinyin: "xiāoxi", pinyinRaw: "xiaoxi", pos: "n.", displayAnswer: "news / message / information", answers: ["news", "message", "information", "word", "tidings"] },
+      { hanzi: "直接", pinyin: "zhíjiē", pinyinRaw: "zhijie", pos: "adj./adv.", displayAnswer: "direct / straightforward", answers: ["direct", "straightforward", "immediate", "directly"] },
+      { hanzi: "交流", pinyin: "jiāoliú", pinyinRaw: "jiaoliu", pos: "v./n.", displayAnswer: "to communicate / exchange", answers: ["communicate", "to communicate", "exchange", "communication", "interact"] },
+      { hanzi: "地球", pinyin: "dìqiú", pinyinRaw: "diqiu", pos: "n.", displayAnswer: "the Earth / globe", answers: ["earth", "the earth", "globe", "world"] },
+      { hanzi: "海洋", pinyin: "hǎiyáng", pinyinRaw: "haiyang", pos: "n.", displayAnswer: "ocean / sea", answers: ["ocean", "sea"] },
+      { hanzi: "到底", pinyin: "dàodǐ", pinyinRaw: "daodi", pos: "adv.", displayAnswer: "on earth / in the end / after all", answers: ["on earth", "in the end", "after all", "at last", "finally"] },
+      { hanzi: "方向", pinyin: "fāngxiàng", pinyinRaw: "fangxiang", pos: "n.", displayAnswer: "direction / orientation", answers: ["direction", "orientation", "bearing", "heading"] },
+      { hanzi: "估计", pinyin: "gūjì", pinyinRaw: "guji", pos: "v.", displayAnswer: "to estimate / reckon", answers: ["estimate", "to estimate", "reckon", "appraise", "guess"] },
+      { hanzi: "表演", pinyin: "biǎoyǎn", pinyinRaw: "biaoyan", pos: "v./n.", displayAnswer: "to perform / performance / show", answers: ["perform", "to perform", "performance", "show", "act", "play"] },
+      { hanzi: "场", pinyin: "chǎng", pinyinRaw: "chang", pos: "m.", displayAnswer: "scene / match / game (M.)", answers: ["scene", "match", "field", "game", "show"] }
+    ];
+
+    const MODULE_2 = [
+      { hanzi: "生意", pinyin: "shēngyi", pinyinRaw: "shengyi", pos: "noun", displayAnswer: "business", answers: ["business", "commerce", "trade", "deal"] },
+      { hanzi: "一切", pinyin: "yíqiè", pinyinRaw: "yiqie", pos: "noun", displayAnswer: "everything", answers: ["everything", "all", "the whole thing"] },
+      { hanzi: "信心", pinyin: "xìnxīn", pinyinRaw: "xinxin", pos: "noun", displayAnswer: "confidence", answers: ["confidence", "faith", "trust", "belief"] },
+      { hanzi: "沙发", pinyin: "shāfā", pinyinRaw: "shafa", pos: "noun", displayAnswer: "sofa", answers: ["sofa", "couch", "settee"] },
+      { hanzi: "底", pinyin: "dǐ", pinyinRaw: "di", pos: "noun", displayAnswer: "bottom", answers: ["bottom", "base", "end"] },
+      { hanzi: "打折", pinyin: "dǎzhé", pinyinRaw: "dazhe", pos: "verb", displayAnswer: "discount / on sale", answers: ["discount", "give discount", "sale", "on sale", "rebate"] },
+      { hanzi: "平时", pinyin: "píngshí", pinyinRaw: "pingshi", pos: "noun", displayAnswer: "ordinary times / usually", answers: ["ordinary times", "normally", "usually", "regular times", "general times", "peacetime"] },
+      { hanzi: "流行", pinyin: "liúxíng", pinyinRaw: "liuxing", pos: "verb/adj", displayAnswer: "popular / fashionable", answers: ["popular", "fashionable", "prevalent", "in vogue", "trendy", "trend"] },
+      { hanzi: "受不了", pinyin: "shòu bù liǎo", pinyinRaw: "shoubùliao", pos: "verb phrase", displayAnswer: "can not bear / stand", answers: ["can not bear", "cannot bear", "cant stand", "can't stand", "unbearable", "cant bear", "can't bear", "intolerable"] },
+      { hanzi: "逛", pinyin: "guàng", pinyinRaw: "guang", pos: "verb", displayAnswer: "stroll / window shop", answers: ["stroll", "roam", "wander", "window shop", "walk around", "shop"] },
+      { hanzi: "辛苦", pinyin: "xīnkǔ", pinyinRaw: "xinku", pos: "adjective", displayAnswer: "hard / laborious", answers: ["hard", "laborious", "toilsome", "tough", "tiring", "exhausting", "strenuous"] },
+      { hanzi: "正好", pinyin: "zhènghǎo", pinyinRaw: "zhenghao", pos: "adj/adv", displayAnswer: "just right / just in time", answers: ["just in time", "just right", "happen to", "coincidentally", "just enough", "perfect", "fitting"] },
+      { hanzi: "台", pinyin: "tái", pinyinRaw: "tai", pos: "measure word", displayAnswer: "measure word for machines", answers: ["measure word for machines", "machine", "tai", "measure word for machine", "set", "platform", "desk", "stage"] },
+      { hanzi: "竞争", pinyin: "jìngzhēng", pinyinRaw: "jingzheng", pos: "noun/verb", displayAnswer: "compete / competition", answers: ["compete", "competition", "rivalry", "contend"] },
+      { hanzi: "压力", pinyin: "yālì", pinyinRaw: "yali", pos: "noun", displayAnswer: "pressure / stress", answers: ["pressure", "stress", "tension", "burden"] },
+      { hanzi: "相同", pinyin: "xiāngtóng", pinyinRaw: "xiangtong", pos: "adjective", displayAnswer: "same / equal", answers: ["same", "equal", "identical", "alike", "similar"] },
+      { hanzi: "顾客", pinyin: "gùkè", pinyinRaw: "guke", pos: "noun", displayAnswer: "customer / client", answers: ["customer", "client", "shopper", "buyer", "patron"] },
+      { hanzi: "符合", pinyin: "fúhé", pinyinRaw: "fuhe", pos: "verb", displayAnswer: "accord with / conform to", answers: ["accord with", "conform to", "match", "meet", "suit", "fit with", "comply with", "fit"] },
+      { hanzi: "计划", pinyin: "jìhuà", pinyinRaw: "jihua", pos: "noun/verb", displayAnswer: "plan", answers: ["plan", "project", "program", "to plan", "scheme", "schedule"] },
+      { hanzi: "专门", pinyin: "zhuānmén", pinyinRaw: "zhuanmen", pos: "adverb", displayAnswer: "specialized / specially", answers: ["specialized", "specially", "specifically", "special", "dedicated"] },
+      { hanzi: "不仅", pinyin: "bùjǐn", pinyinRaw: "bujin", pos: "conjunction", displayAnswer: "not only", answers: ["not only", "not just", "not merely"] },
+      { hanzi: "陪", pinyin: "péi", pinyinRaw: "pei", pos: "verb", displayAnswer: "to accompany", answers: ["accompany", "to accompany", "keep company", "with", "go with", "escort"] },
+      { hanzi: "袜子", pinyin: "wàzi", pinyinRaw: "wazi", pos: "noun", displayAnswer: "socks", answers: ["socks", "sock", "stockings", "hose"] },
+      { hanzi: "吃惊", pinyin: "chījīng", pinyinRaw: "chijing", pos: "adj/verb", displayAnswer: "shocked / surprised", answers: ["shocked", "be shocked", "surprised", "amazed", "astonished", "startled"] },
+      { hanzi: "竟然", pinyin: "jìngrán", pinyinRaw: "jingran", pos: "adverb", displayAnswer: "unexpectedly", answers: ["unexpectedly", "to one's surprise", "actually", "go so far as to", "unbelievably"] },
+      { hanzi: "葡萄酒", pinyin: "pútɑojiǔ", pinyinRaw: "putaojiu", pos: "noun", displayAnswer: "wine", answers: ["wine", "grape wine", "red wine", "white wine"] },
+      { hanzi: "味道", pinyin: "wèidào", pinyinRaw: "weidao", pos: "noun", displayAnswer: "taste / flavor", answers: ["taste", "flavor", "smell", "scent", "savor"] },
+      { hanzi: "艺术品", pinyin: "yìshùpǐn", pinyinRaw: "yishupin", pos: "noun", displayAnswer: "work of art", answers: ["work of art", "art", "artwork", "art piece", "piece of art"] },
+      { hanzi: "吸引", pinyin: "xīyǐn", pinyinRaw: "xiyin", pos: "verb", displayAnswer: "to attract", answers: ["attract", "to attract", "draw", "fascinate", "appeal", "charm"] },
+      { hanzi: "富", pinyin: "fù", pinyinRaw: "fu", pos: "adjective", displayAnswer: "rich / wealthy", answers: ["rich", "wealthy", "abundant", "affluent"] },
+      { hanzi: "穷", pinyin: "qióng", pinyinRaw: "qiong", pos: "adjective", displayAnswer: "poor", answers: ["poor", "impoverished", "needy"] },
+      { hanzi: "作者", pinyin: "zuòzhě", pinyinRaw: "zuozhe", pos: "noun", displayAnswer: "author / writer", answers: ["author", "writer", "creator"] },
+      { hanzi: "父亲", pinyin: "fùqin", pinyinRaw: "fuqin", pos: "noun", displayAnswer: "father", answers: ["father", "dad", "papa"] },
+      { hanzi: "看法", pinyin: "kànfǎ", pinyinRaw: "kanfa", pos: "noun", displayAnswer: "view / opinion", answers: ["view", "opinion", "perspective", "viewpoint", "look"] },
+      { hanzi: "完全", pinyin: "wánquán", pinyinRaw: "wanquan", pos: "adverb", displayAnswer: "completely / entirely", answers: ["completely", "entirely", "totally", "fully", "absolutely", "wholly"] },
+      { hanzi: "使", pinyin: "shǐ", pinyinRaw: "shi", pos: "verb", displayAnswer: "make / cause / enable", answers: ["make", "cause", "enable", "let", "render", "allow"] },
+      { hanzi: "接受", pinyin: "jiēshòu", pinyinRaw: "jieshou", pos: "verb", displayAnswer: "to accept", answers: ["accept", "to accept", "receive", "take", "agree"] },
+      { hanzi: "而", pinyin: "ér", pinyinRaw: "er", pos: "conjunction", displayAnswer: "but / while / and", answers: ["but", "while", "and", "yet", "whereas", "however"] },
+      { hanzi: "招聘", pinyin: "zhāopìn", pinyinRaw: "zhaopin", pos: "verb", displayAnswer: "to recruit / hire", answers: ["recruit", "to recruit", "hire", "job recruitment", "advertise for jobs", "employ"] },
+      { hanzi: "好像", pinyin: "hǎoxiàng", pinyinRaw: "haoxiang", pos: "adverb", displayAnswer: "seem / look like", answers: ["seem", "look like", "as if", "appear", "seems"] },
+      { hanzi: "挺", pinyin: "tǐng", pinyinRaw: "ting", pos: "adverb", displayAnswer: "very / quite", answers: ["very", "quite", "pretty", "rather", "fairly"] },
+      { hanzi: "适合", pinyin: "shìhé", pinyinRaw: "shihe", pos: "verb", displayAnswer: "to fit / suit", answers: ["fit", "to fit", "suit", "suitable", "to suit", "befit"] },
+      { hanzi: "工资", pinyin: "gōngzī", pinyinRaw: "gongzi", pos: "noun", displayAnswer: "wages / salary", answers: ["wages", "salary", "pay", "income", "earnings"] },
+      { hanzi: "部分", pinyin: "bùfen", pinyinRaw: "bufen", pos: "noun", displayAnswer: "part / section", answers: ["part", "section", "portion", "share", "segment", "piece"] },
+      { hanzi: "经济", pinyin: "jīngjì", pinyinRaw: "jingji", pos: "noun", displayAnswer: "economics / economy", answers: ["economics", "economy", "financial", "finance"] },
+      { hanzi: "困难", pinyin: "kùnnɑn", pinyinRaw: "kunnan", pos: "noun/adj", displayAnswer: "difficulty / hard", answers: ["difficulty", "hard", "problem", "difficult", "hardship", "trouble", "obstacle"] },
+      { hanzi: "获得", pinyin: "huòdé", pinyinRaw: "huode", pos: "verb", displayAnswer: "to get / obtain", answers: ["get", "to get", "obtain", "gain", "acquire", "win", "earn"] },
+      { hanzi: "尊重", pinyin: "zūnzhòng", pinyinRaw: "zunzhong", pos: "verb/noun", displayAnswer: "to respect", answers: ["respect", "to respect", "esteem", "value", "honor"] },
+      { hanzi: "实在", pinyin: "shízɑi", pinyinRaw: "shizai", pos: "adv/adj", displayAnswer: "really / honest", answers: ["really", "honest", "in fact", "truly", "indeed", "realistic", "actual"] },
+      { hanzi: "谈", pinyin: "tán", pinyinRaw: "tan", pos: "verb", displayAnswer: "to talk / discuss", answers: ["talk", "to talk", "discuss", "speak", "chat", "converse"] },
+      { hanzi: "要是", pinyin: "yàoshì", pinyinRaw: "yaoshi", pos: "conjunction", displayAnswer: "if / in case", answers: ["if", "in case", "supposing", "provided"] },
+      { hanzi: "输", pinyin: "shū", pinyinRaw: "shu", pos: "verb", displayAnswer: "to lose / lost", answers: ["lose", "lost", "to lose", "fail", "be defeated"] },
+      { hanzi: "掉", pinyin: "diào", pinyinRaw: "diao", pos: "verb", displayAnswer: "fall / drop / off", answers: ["fall", "drop", "off", "fall off", "shed", "lose"] },
+      { hanzi: "样子", pinyin: "yàngzi", pinyinRaw: "yangzi", pos: "noun", displayAnswer: "appearance / manner", answers: ["appearance", "manner", "look", "shape", "style", "form"] },
+      { hanzi: "保证", pinyin: "bǎozhèng", pinyinRaw: "baozheng", pos: "verb/noun", displayAnswer: "ensure / guarantee", answers: ["ensure", "guarantee", "promise", "pledge", "assure", "insure"] },
+      { hanzi: "棒", pinyin: "bàng", pinyinRaw: "bang", pos: "adjective", displayAnswer: "excellent / great", answers: ["excellent", "great", "awesome", "good", "super", "wonderful", "terrific", "fantastic"] },
+      { hanzi: "够", pinyin: "gòu", pinyinRaw: "gou", pos: "verb/adv", displayAnswer: "enough / sufficient", answers: ["enough", "sufficient", "reach", "adequate"] },
+      { hanzi: "刚刚", pinyin: "gānggāng", pinyinRaw: "ganggang", pos: "adverb", displayAnswer: "just / just now", answers: ["just", "just now", "barely", "only just", "a moment ago"] },
+      { hanzi: "社会", pinyin: "shèhuì", pinyinRaw: "shehui", pos: "noun", displayAnswer: "society", answers: ["society", "community", "public"] },
+      { hanzi: "赚", pinyin: "zhuàn", pinyinRaw: "zhuan", pos: "verb", displayAnswer: "to earn / make profit", answers: ["earn", "to earn", "make profit", "gain", "make money", "profit"] },
+      { hanzi: "奖金", pinyin: "jiǎngjīn", pinyinRaw: "jiangjin", pos: "noun", displayAnswer: "bonus / award money", answers: ["bonus", "award money", "prize", "premium", "reward", "bounty"] },
+      { hanzi: "实际上", pinyin: "shíjìshɑng", pinyinRaw: "shijishang", pos: "adverb", displayAnswer: "in fact / actually", answers: ["in fact", "actually", "in reality", "as a matter of fact", "practically"] },
+      { hanzi: "正确", pinyin: "zhèngquè", pinyinRaw: "zhengque", pos: "adjective", displayAnswer: "correct / right", answers: ["correct", "right", "proper", "accurate", "exact", "true"] },
+      { hanzi: "重点", pinyin: "zhòngdiǎn", pinyinRaw: "zhongdian", pos: "noun", displayAnswer: "key point / focus", answers: ["key point", "focus", "main point", "emphasis", "core", "key", "highlight"] },
+      { hanzi: "丰富", pinyin: "fēngfù", pinyinRaw: "fengfu", pos: "adj/verb", displayAnswer: "rich / abundant", answers: ["rich", "abundant", "plentiful", "enrich", "copious", "plenty"] },
+      { hanzi: "经验", pinyin: "jīngyàn", pinyinRaw: "jingyan", pos: "noun", displayAnswer: "experience", answers: ["experience", "background"] },
+      { hanzi: "例如", pinyin: "lìrú", pinyinRaw: "liru", pos: "verb", displayAnswer: "for example / such as", answers: ["for example", "such as", "for instance", "e.g.", "eg", "like"] },
+      { hanzi: "与", pinyin: "yǔ", pinyinRaw: "yu", pos: "prep/conj", displayAnswer: "with / and", answers: ["with", "and", "together with"] },
+      { hanzi: "方法", pinyin: "fāngfǎ", pinyinRaw: "fangfa", pos: "noun", displayAnswer: "method / way", answers: ["method", "way", "means", "manner", "approach", "mode", "technique"] },
+      { hanzi: "积累", pinyin: "jīlěi", pinyinRaw: "jilei", pos: "verb/noun", displayAnswer: "accumulate", answers: ["accumulate", "accumulation", "gather", "amass", "build up", "collect"] },
+      { hanzi: "专业", pinyin: "zhuānyè", pinyinRaw: "zhuanye", pos: "noun/adj", displayAnswer: "major / specialized", answers: ["major", "specialized", "profession", "specialty", "field", "discipline", "professional"] },
+      { hanzi: "知识", pinyin: "zhīshi", pinyinRaw: "zhishi", pos: "noun", displayAnswer: "knowledge", answers: ["knowledge", "intellect", "lore", "information"] },
+      { hanzi: "职业", pinyin: "zhíyè", pinyinRaw: "zhiye", pos: "noun", displayAnswer: "occupation / career", answers: ["occupation", "career", "profession", "job", "vocation"] },
+      { hanzi: "态度", pinyin: "tàidù", pinyinRaw: "taidu", pos: "noun", displayAnswer: "attitude", answers: ["attitude", "manner", "bearing", "posture"] },
+      { hanzi: "收入", pinyin: "shōurù", pinyinRaw: "shouru", pos: "noun", displayAnswer: "income / revenue", answers: ["income", "revenue", "earnings", "receipts", "pay"] },
+      { hanzi: "丢", pinyin: "diū", pinyinRaw: "diu", pos: "verb", displayAnswer: "to lose / throw", answers: ["lose", "to lose", "throw", "toss", "misplace", "cast off", "drop"] }
+    ];
+
+    const MODULE_3 = [
+      { hanzi: "当", pinyin: "dāng", pinyinRaw: "dang", pos: "prep.", displayAnswer: "just at (a time or place)", answers: ["just at", "when", "at", "during", "while"] },
+      { hanzi: "相反", pinyin: "xiāngfǎn", pinyinRaw: "xiangfan", pos: "adj./conj.", displayAnswer: "contrary / opposite", answers: ["contrary", "opposite", "on the contrary", "reverse"] },
+      { hanzi: "热闹", pinyin: "rènao", pinyinRaw: "renao", pos: "adj.", displayAnswer: "lively / bustling", answers: ["lively", "bustling", "noisy and exciting", "busy"] },
+      { hanzi: "躺", pinyin: "tǎng", pinyinRaw: "tang", pos: "v.", displayAnswer: "to lie down", answers: ["lie down", "to lie down", "lie", "recline"] },
+      { hanzi: "响", pinyin: "xiǎng", pinyinRaw: "xiang", pos: "v./adj.", displayAnswer: "to ring / loud", answers: ["ring", "to ring", "sound", "loud", "make a sound"] },
+      { hanzi: "敲", pinyin: "qiāo", pinyinRaw: "qiao", pos: "v.", displayAnswer: "to knock", answers: ["knock", "to knock", "beat", "strike"] },
+      { hanzi: "猜", pinyin: "cāi", pinyinRaw: "cai", pos: "v.", displayAnswer: "to guess", answers: ["guess", "to guess", "speculate"] },
+      { hanzi: "租", pinyin: "zū", pinyinRaw: "zu", pos: "v.", displayAnswer: "to rent", answers: ["rent", "to rent", "lease", "hire"] },
+      { hanzi: "钥匙", pinyin: "yàoshi", pinyinRaw: "yaoshi", pos: "n.", displayAnswer: "key", answers: ["key", "keys"] },
+      { hanzi: "马虎", pinyin: "mǎhu", pinyinRaw: "mahu", pos: "adj.", displayAnswer: "careless", answers: ["careless", "sloppy", "negligent", "casual"] },
+      { hanzi: "尽管", pinyin: "jǐnguǎn", pinyinRaw: "jinguan", pos: "conj.", displayAnswer: "although / despite", answers: ["although", "despite", "in spite of", "even though", "feel free"] },
+      { hanzi: "打扰", pinyin: "dǎrǎo", pinyinRaw: "darao", pos: "v.", displayAnswer: "to disturb / bother", answers: ["disturb", "to disturb", "bother", "trouble", "interrupt"] },
+      { hanzi: "呀", pinyin: "ya", pinyinRaw: "ya", pos: "aux.", displayAnswer: "ah (interjection)", answers: ["ah", "oh", "ya"] },
+      { hanzi: "长江", pinyin: "Chángjiāng", pinyinRaw: "changjiang", pos: "n.", displayAnswer: "The Yangtze River", answers: ["the yangtze river", "yangtze river", "yangtze", "changjiang"] },
+      { hanzi: "性格", pinyin: "xìnggé", pinyinRaw: "xingge", pos: "n.", displayAnswer: "personality / character", answers: ["personality", "character", "nature", "temperament"] },
+      { hanzi: "改变", pinyin: "gǎibiàn", pinyinRaw: "gaibian", pos: "v./n.", displayAnswer: "to change", answers: ["change", "to change", "alter", "transform", "shift"] },
+      { hanzi: "关键", pinyin: "guānjiàn", pinyinRaw: "guanjian", pos: "n./adj.", displayAnswer: "key / crucial", answers: ["key", "crucial", "essential", "critical", "hinge"] },
+      { hanzi: "特点", pinyin: "tèdiǎn", pinyinRaw: "tedian", pos: "n.", displayAnswer: "characteristic / feature", answers: ["characteristic", "feature", "trait", "attribute"] },
+      { hanzi: "周围", pinyin: "zhōuwéi", pinyinRaw: "zhouwei", pos: "n.", displayAnswer: "around / surroundings", answers: ["around", "surroundings", "surrounding", "vicinity", "perimeter"] },
+      { hanzi: "失败", pinyin: "shībài", pinyinRaw: "shibai", pos: "v./n.", displayAnswer: "fail / failure", answers: ["fail", "failure", "be defeated", "lose"] },
+      { hanzi: "成功", pinyin: "chénggōng", pinyinRaw: "chenggong", pos: "v./n./adj.", displayAnswer: "succeed / success", answers: ["succeed", "success", "successful"] },
+      { hanzi: "通过", pinyin: "tōngguò", pinyinRaw: "tongguo", pos: "prep./v.", displayAnswer: "through / pass", answers: ["through", "pass", "by means of", "adopt", "approve"] },
+      { hanzi: "优点", pinyin: "yōudiǎn", pinyinRaw: "youdian", pos: "n.", displayAnswer: "advantage / strong point", answers: ["advantage", "strong point", "merit", "strength", "plus"] },
+      { hanzi: "缺点", pinyin: "quēdiǎn", pinyinRaw: "quedian", pos: "n.", displayAnswer: "shortcoming / weakness", answers: ["shortcoming", "weakness", "defect", "drawback", "flaw"] },
+      { hanzi: "刚", pinyin: "gāng", pinyinRaw: "gang", pos: "adv.", displayAnswer: "just / barely", answers: ["just", "barely", "only", "hardly", "just now"] },
+      { hanzi: "到处", pinyin: "dàochù", pinyinRaw: "daochu", pos: "adv.", displayAnswer: "everywhere", answers: ["everywhere", "all over", "throughout"] },
+      { hanzi: "脾气", pinyin: "píqi", pinyinRaw: "piqi", pos: "n.", displayAnswer: "temper / disposition", answers: ["temper", "disposition", "bad temper", "mood"] },
+      { hanzi: "讨厌", pinyin: "tǎoyàn", pinyinRaw: "taoyan", pos: "v./adj.", displayAnswer: "sick of / dislike / annoying", answers: ["sick of", "dislike", "hate", "annoying", "loathe", "disgusting"] },
+      { hanzi: "却", pinyin: "què", pinyinRaw: "que", pos: "adv./conj.", displayAnswer: "yet / but", answers: ["yet", "but", "however", "while"] },
+      { hanzi: "真正", pinyin: "zhēnzhèng", pinyinRaw: "zhenzheng", pos: "adj./adv.", displayAnswer: "real / genuine / true", answers: ["real", "genuine", "true", "truly", "authentic"] },
+      { hanzi: "镜子", pinyin: "jìngzi", pinyinRaw: "jingzi", pos: "n.", displayAnswer: "mirror", answers: ["mirror", "looking glass"] },
+      { hanzi: "永远", pinyin: "yǒngyuǎn", pinyinRaw: "yongyuan", pos: "adv.", displayAnswer: "forever / always", answers: ["forever", "always", "ever", "eternal", "eternally"] },
+      { hanzi: "支持", pinyin: "zhīchí", pinyinRaw: "zhichi", pos: "v./n.", displayAnswer: "to support", answers: ["support", "to support", "back", "stand by", "endorse"] },
+      { hanzi: "幽默", pinyin: "yōumò", pinyinRaw: "youmo", pos: "adj./n.", displayAnswer: "humorous / humor", answers: ["humorous", "humor", "funny", "witty"] },
+      { hanzi: "羡慕", pinyin: "xiànmù", pinyinRaw: "xianmu", pos: "v.", displayAnswer: "admire / envy", answers: ["admire", "envy", "to admire", "to envy"] },
+      { hanzi: "能力", pinyin: "nénglì", pinyinRaw: "nengli", pos: "n.", displayAnswer: "ability / capability", answers: ["ability", "capability", "capacity", "competence", "power"] },
+      { hanzi: "有趣", pinyin: "yǒuqù", pinyinRaw: "youqu", pos: "adj.", displayAnswer: "interesting / fun", answers: ["interesting", "fun", "fascinating", "amusing"] },
+      { hanzi: "无聊", pinyin: "wúliáo", pinyinRaw: "wuliao", pos: "adj.", displayAnswer: "boring / bored", answers: ["boring", "bored", "dull", "tedious"] },
+      { hanzi: "笑话", pinyin: "xiàohua", pinyinRaw: "xiaohua", pos: "n.", displayAnswer: "joke", answers: ["joke", "jest", "laughingstock"] },
+      { hanzi: "肚子", pinyin: "dùzi", pinyinRaw: "duzi", pos: "n.", displayAnswer: "belly / stomach", answers: ["belly", "stomach", "abdomen", "tummy"] },
+      { hanzi: "不管", pinyin: "bùguǎn", pinyinRaw: "buguan", pos: "conj.", displayAnswer: "no matter / regardless of", answers: ["no matter", "regardless of", "regardless", "no matter what", "despite"] },
+      { hanzi: "心情", pinyin: "xīnqíng", pinyinRaw: "xinqing", pos: "n.", displayAnswer: "mood / state of mind", answers: ["mood", "state of mind", "feeling", "frame of mind"] },
+      { hanzi: "研究", pinyin: "yánjiū", pinyinRaw: "yanjiu", pos: "v./n.", displayAnswer: "research / study", answers: ["research", "study", "investigate", "to study", "to research"] },
+      { hanzi: "证明", pinyin: "zhèngmíng", pinyinRaw: "zhengming", pos: "v./n.", displayAnswer: "to prove / certificate", answers: ["prove", "to prove", "certificate", "testify", "proof", "demonstrate"] },
+      { hanzi: "感情", pinyin: "gǎnqíng", pinyinRaw: "ganqing", pos: "n.", displayAnswer: "feeling / emotion / affection", answers: ["feeling", "emotion", "affection", "feelings", "love", "sentiment"] },
+      { hanzi: "兴奋", pinyin: "xīngfèn", pinyinRaw: "xingfen", pos: "adj.", displayAnswer: "excitement / excited", answers: ["excitement", "excited", "thrilled", "exhilarated"] },
+      { hanzi: "伤心", pinyin: "shāngxīn", pinyinRaw: "shangxin", pos: "adj.", displayAnswer: "sad / heartbroken", answers: ["sad", "heartbroken", "grieved", "sorrowful"] },
+      { hanzi: "好处", pinyin: "hǎochu", pinyinRaw: "haochu", pos: "n.", displayAnswer: "benefit / advantage", answers: ["benefit", "advantage", "gain", "profit", "merit"] },
+      { hanzi: "往往", pinyin: "wǎngwǎng", pinyinRaw: "wangwang", pos: "adv.", displayAnswer: "often / frequently / usually", answers: ["often", "frequently", "usually", "tend to", "more often than not"] },
+      { hanzi: "阳光", pinyin: "yángguāng", pinyinRaw: "yangguang", pos: "n./adj.", displayAnswer: "sunshine / sunny", answers: ["sunshine", "sunny", "sunlight", "sun"] },
+      { hanzi: "生活", pinyin: "shēnghuó", pinyinRaw: "shenghuo", pos: "n./v.", displayAnswer: "life / to live", answers: ["life", "live", "to live", "livelihood"] },
+      { hanzi: "积极", pinyin: "jījí", pinyinRaw: "jiji", pos: "adj.", displayAnswer: "positive / active", answers: ["positive", "active", "enthusiastic", "energetic"] },
+      { hanzi: "共同", pinyin: "gòngtóng", pinyinRaw: "gongtong", pos: "adj./adv.", displayAnswer: "common / joint", answers: ["common", "joint", "together", "shared", "mutual", "collaborative"] },
+      { hanzi: "浪漫", pinyin: "làngmàn", pinyinRaw: "langman", pos: "adj.", displayAnswer: "romantic", answers: ["romantic"] },
+      { hanzi: "爱情", pinyin: "àiqíng", pinyinRaw: "aiqing", pos: "n.", displayAnswer: "love (romantic)", answers: ["love", "romantic love", "romance", "affection"] },
+      { hanzi: "互相", pinyin: "hùxiāng", pinyinRaw: "huxiang", pos: "adv.", displayAnswer: "each other / mutually", answers: ["each other", "mutually", "one another", "mutual"] },
+      { hanzi: "亲戚", pinyin: "qīnqi", pinyinRaw: "qinqi", pos: "n.", displayAnswer: "relative / kin", answers: ["relative", "relatives", "kin", "kinsman", "family"] },
+      { hanzi: "律师", pinyin: "lǜshī", pinyinRaw: "lvshi", pos: "n.", displayAnswer: "lawyer / attorney", answers: ["lawyer", "attorney", "counsel", "solicitor"] },
+      { hanzi: "号码", pinyin: "hàomǎ", pinyinRaw: "haoma", pos: "n.", displayAnswer: "number", answers: ["number", "code", "digit"] },
+      { hanzi: "许多", pinyin: "xǔduō", pinyinRaw: "xuduo", pos: "adj./num.", displayAnswer: "many / much / a lot", answers: ["many", "much", "a lot", "a lot of", "plenty of", "numerous"] },
+      { hanzi: "发生", pinyin: "fāshēng", pinyinRaw: "fasheng", pos: "v.", displayAnswer: "happen / occur", answers: ["happen", "occur", "take place", "arise"] },
+      { hanzi: "千万", pinyin: "qiānwàn", pinyinRaw: "qianwan", pos: "adv./num.", displayAnswer: "make sure to / ten million", answers: ["make sure to", "by all means", "must", "be sure to", "never", "ten million"] },
+      { hanzi: "乱", pinyin: "luàn", pinyinRaw: "luan", pos: "adj./adv.", displayAnswer: "in a mess / chaotic / random", answers: ["in a mess", "messy", "chaotic", "chaos", "random", "disordered"] },
+      { hanzi: "小说", pinyin: "xiǎoshuō", pinyinRaw: "xiaoshuo", pos: "n.", displayAnswer: "novel / fiction", answers: ["novel", "fiction", "story", "book"] },
+      { hanzi: "经历", pinyin: "jīnglì", pinyinRaw: "jingli", pos: "n./v.", displayAnswer: "experience / go through", answers: ["experience", "go through", "undergo"] },
+      { hanzi: "酸", pinyin: "suān", pinyinRaw: "suan", pos: "adj.", displayAnswer: "sour / acid", answers: ["sour", "acid", "acidic", "tart", "sore"] },
+      { hanzi: "苦", pinyin: "kǔ", pinyinRaw: "ku", pos: "adj.", displayAnswer: "bitter / hardship", answers: ["bitter", "hardship", "painful", "hard"] },
+      { hanzi: "辣", pinyin: "là", pinyinRaw: "la", pos: "adj.", displayAnswer: "hot / spicy", answers: ["hot", "spicy", "pungent"] },
+      { hanzi: "深厚", pinyin: "shēnhòu", pinyinRaw: "shenhou", pos: "adj.", displayAnswer: "deep / profound", answers: ["deep", "profound", "solid", "deep-seated"] },
+      { hanzi: "重视", pinyin: "zhòngshì", pinyinRaw: "zhongshi", pos: "v.", displayAnswer: "attach importance to / value", answers: ["attach importance to", "value", "pay attention to", "take seriously", "prize"] },
+      { hanzi: "幸福", pinyin: "xìngfú", pinyinRaw: "xingfu", pos: "n./adj.", displayAnswer: "happiness / happy", answers: ["happiness", "happy", "blessed", "bliss", "well-being"] }
+    ];
+
+    const MODULE_4 = [
+      { hanzi: "无", pinyin: "wú", pinyinRaw: "wu", pos: "v.", displayAnswer: "not have / without", answers: ["not have", "without", "have not", "lack", "none", "no", "not exist"] },
+      { hanzi: "出现", pinyin: "chūxiàn", pinyinRaw: "chuxian", pos: "v.", displayAnswer: "to appear / arise", answers: ["appear", "to appear", "arise", "emerge", "turn up", "occur", "show up"] },
+      { hanzi: "观众", pinyin: "guānzhòng", pinyinRaw: "guanzhong", pos: "n.", displayAnswer: "audience / viewers", answers: ["audience", "viewers", "spectators", "crowd", "listeners", "viewer"] },
+      { hanzi: "当时", pinyin: "dāngshí", pinyinRaw: "dangshi", pos: "n.", displayAnswer: "at that time / then", answers: ["at that time", "then", "at the time", "that time"] },
+      { hanzi: "准时", pinyin: "zhǔnshí", pinyinRaw: "zhunshi", pos: "adj.", displayAnswer: "on time / punctual", answers: ["on time", "punctual", "on schedule", "punctually"] },
+      { hanzi: "收", pinyin: "shōu", pinyinRaw: "shou", pos: "v.", displayAnswer: "to receive / accept / collect", answers: ["receive", "to receive", "accept", "collect", "take in", "gather"] },
+      { hanzi: "自然", pinyin: "zìrán", pinyinRaw: "ziran", pos: "n./adv.", displayAnswer: "nature / naturally", answers: ["nature", "naturally", "natural", "of course"] },
+      { hanzi: "亚洲", pinyin: "Yàzhōu", pinyinRaw: "yazhou", pos: "n.", displayAnswer: "Asia", answers: ["asia", "asian continent"] },
+      { hanzi: "内", pinyin: "nèi", pinyinRaw: "nei", pos: "n.", displayAnswer: "inside / within / inner", answers: ["inside", "within", "inner", "internal", "in"] },
+      { hanzi: "著名", pinyin: "zhùmíng", pinyinRaw: "zhuming", pos: "adj.", displayAnswer: "famous / well-known", answers: ["famous", "well-known", "celebrated", "renowned", "notable"] },
+      { hanzi: "教授", pinyin: "jiàoshòu", pinyinRaw: "jiaoshou", pos: "n.", displayAnswer: "professor", answers: ["professor", "instructor"] },
+      { hanzi: "假", pinyin: "jiǎ", pinyinRaw: "jia", pos: "adj.", displayAnswer: "fake / false / artificial", answers: ["fake", "false", "artificial", "bogus", "sham", "unreal"] },
+      { hanzi: "开玩笑", pinyin: "kāi wánxiào", pinyinRaw: "kaiwanxiao", pos: "phrase", displayAnswer: "to make fun of / play a trick / joke", answers: ["make fun of", "to make fun of", "play a trick", "joke", "to joke", "kidding", "kid", "jest"] },
+      { hanzi: "骗", pinyin: "piàn", pinyinRaw: "pian", pos: "v.", displayAnswer: "to deceive / cheat / fool", answers: ["deceive", "to deceive", "cheat", "fool", "trick", "swindle", "dupe"] },
+      { hanzi: "动作", pinyin: "dòngzuò", pinyinRaw: "dongzuo", pos: "n.", displayAnswer: "movement / action / motion", answers: ["movement", "action", "motion", "move", "gesture"] },
+      { hanzi: "演员", pinyin: "yǎnyuán", pinyinRaw: "yanyuan", pos: "n.", displayAnswer: "actor / actress / performer", answers: ["actor", "actress", "performer", "player"] },
+      { hanzi: "演出", pinyin: "yǎnchū", pinyinRaw: "yanchu", pos: "v./n.", displayAnswer: "to perform / performance / show", answers: ["perform", "to perform", "performance", "show", "act"] },
+      { hanzi: "拉", pinyin: "lā", pinyinRaw: "la", pos: "v.", displayAnswer: "to pull / drag / draw", answers: ["pull", "to pull", "drag", "draw", "tug"] },
+      { hanzi: "进行", pinyin: "jìnxíng", pinyinRaw: "jinxing", pos: "v.", displayAnswer: "to proceed / conduct / carry out", answers: ["proceed", "to proceed", "conduct", "carry out", "execute", "underway"] },
+      { hanzi: "对话", pinyin: "duìhuà", pinyinRaw: "duihua", pos: "v./n.", displayAnswer: "have a dialogue / conversation", answers: ["dialogue", "conversation", "have a dialogue", "have a conversation", "talk", "chat"] },
+      { hanzi: "数字", pinyin: "shùzì", pinyinRaw: "shuzi", pos: "n.", displayAnswer: "figure / number / digit", answers: ["figure", "number", "digit", "numeral", "numbers"] },
+      { hanzi: "目的", pinyin: "mùdì", pinyinRaw: "mudi", pos: "n.", displayAnswer: "goal / purpose / aim", answers: ["goal", "purpose", "aim", "target", "objective"] },
+      { hanzi: "准确", pinyin: "zhǔnquè", pinyinRaw: "zhunque", pos: "adj.", displayAnswer: "exact / accurate / precise", answers: ["exact", "accurate", "precise", "accuracy", "correct"] },
+      { hanzi: "调查", pinyin: "diàochá", pinyinRaw: "diaocha", pos: "v./n.", displayAnswer: "to investigate / survey / inquiry", answers: ["investigate", "to investigate", "survey", "inquiry", "poll", "examine"] },
+      { hanzi: "错误", pinyin: "cuòwù", pinyinRaw: "cuowu", pos: "n./adj.", displayAnswer: "mistake / error / wrong", answers: ["mistake", "error", "wrong", "fault", "incorrect", "blunder"] },
+      { hanzi: "合格", pinyin: "hégé", pinyinRaw: "hege", pos: "adj.", displayAnswer: "qualified / up to standard", answers: ["qualified", "up to standard", "eligible", "certified", "pass"] },
+      { hanzi: "负责", pinyin: "fùzé", pinyinRaw: "fuze", pos: "v./adj.", displayAnswer: "responsible / be in charge of", answers: ["responsible", "be responsible for", "in charge of", "be in charge of", "charge", "take charge"] },
+      { hanzi: "比如", pinyin: "bǐrú", pinyinRaw: "biru", pos: "v.", displayAnswer: "for example / such as", answers: ["for example", "such as", "for instance", "e.g.", "like"] },
+      { hanzi: "牙膏", pinyin: "yágāo", pinyinRaw: "yagao", pos: "n.", displayAnswer: "toothpaste", answers: ["toothpaste", "dentifrice"] },
+      { hanzi: "毛巾", pinyin: "máojīn", pinyinRaw: "maojin", pos: "n.", displayAnswer: "towel", answers: ["towel", "washcloth"] },
+      { hanzi: "皮肤", pinyin: "pífū", pinyinRaw: "pifu", pos: "n.", displayAnswer: "skin", answers: ["skin", "epidermis", "cutis"] },
+      { hanzi: "方式", pinyin: "fāngshì", pinyinRaw: "fangshi", pos: "n.", displayAnswer: "way / pattern / style / manner", answers: ["way", "pattern", "style", "manner", "mode", "method"] },
+      { hanzi: "民族", pinyin: "mínzú", pinyinRaw: "minzu", pos: "n.", displayAnswer: "nation / nationality / ethnic group", answers: ["nation", "nationality", "ethnic group", "ethnicity", "race"] },
+      { hanzi: "语言", pinyin: "yǔyán", pinyinRaw: "yuyan", pos: "n.", displayAnswer: "language / speech", answers: ["language", "speech", "tongue"] },
+      { hanzi: "增加", pinyin: "zēngjiā", pinyinRaw: "zengjia", pos: "v.", displayAnswer: "to increase / raise / add", answers: ["increase", "to increase", "raise", "add", "boost", "grow", "expand"] },
+      { hanzi: "烦恼", pinyin: "fánnǎo", pinyinRaw: "fannao", pos: "adj./n.", displayAnswer: "confused / annoyed / worried / trouble", answers: ["confused", "annoyed", "worried", "trouble", "vexed", "troubled", "bothered", "worry"] },
+      { hanzi: "普遍", pinyin: "pǔbiàn", pinyinRaw: "pubian", pos: "adj.", displayAnswer: "general / universal / widespread", answers: ["general", "universal", "widespread", "common", "prevalent"] },
+      { hanzi: "密码", pinyin: "mìmǎ", pinyinRaw: "mima", pos: "n.", displayAnswer: "password / passcode / code", answers: ["password", "passcode", "code", "pin", "cipher"] },
+      { hanzi: "连", pinyin: "lián", pinyinRaw: "lian", pos: "prep./v.", displayAnswer: "even / link / connect", answers: ["even", "link", "connect", "join", "including"] },
+      { hanzi: "森林", pinyin: "sēnlín", pinyinRaw: "senlin", pos: "n.", displayAnswer: "forest / woods", answers: ["forest", "woods", "woodland"] },
+      { hanzi: "植物", pinyin: "zhíwù", pinyinRaw: "zhiwu", pos: "n.", displayAnswer: "plant / flora / vegetation", answers: ["plant", "plants", "flora", "vegetation"] },
+      { hanzi: "留", pinyin: "liú", pinyinRaw: "liu", pos: "v.", displayAnswer: "to leave / remain / stay / keep", answers: ["leave", "to leave", "remain", "stay", "keep", "retain"] },
+      { hanzi: "空气", pinyin: "kōngqì", pinyinRaw: "kongqi", pos: "n.", displayAnswer: "air / atmosphere", answers: ["air", "atmosphere"] },
+      { hanzi: "年龄", pinyin: "niánlíng", pinyinRaw: "nianling", pos: "n.", displayAnswer: "age", answers: ["age", "years of age"] },
+      { hanzi: "印象", pinyin: "yìnxiàng", pinyinRaw: "yinxiang", pos: "n.", displayAnswer: "impression / perception", answers: ["impression", "perception", "feeling", "effect"] },
+      { hanzi: "举办", pinyin: "jǔbàn", pinyinRaw: "juban", pos: "v.", displayAnswer: "to hold / host / organize", answers: ["hold", "to hold", "host", "organize", "conduct", "run"] },
+      { hanzi: "免费", pinyin: "miǎnfèi", pinyinRaw: "mianfei", pos: "v./adj.", displayAnswer: "free of charge / gratis", answers: ["free of charge", "free", "gratis", "complimentary", "cost-free"] }
+    ];
+
+    const MODULE_5 = [
+      { hanzi: "减肥", pinyin: "jiǎnféi", pinyinRaw: "jianfei", pos: "v.", displayAnswer: "to lose weight / diet / slim", answers: ["lose weight", "to lose weight", "diet", "slimming", "slim down", "lose pounds"] },
+      { hanzi: "坚持", pinyin: "jiānchí", pinyinRaw: "jianchi", pos: "v.", displayAnswer: "to persevere in / persist / insist", answers: ["persevere", "persevere in", "persist", "to persist", "insist", "to insist", "stick to", "hold on", "keep up"] },
+      { hanzi: "否则", pinyin: "fǒuzé", pinyinRaw: "fouze", pos: "conj.", displayAnswer: "otherwise / or else / if not", answers: ["otherwise", "or else", "if not"] },
+      { hanzi: "效果", pinyin: "xiàoguǒ", pinyinRaw: "xiaoguo", pos: "n.", displayAnswer: "effect / result / outcome", answers: ["effect", "result", "outcome", "consequence", "impact"] },
+      { hanzi: "网球", pinyin: "wǎngqiú", pinyinRaw: "wangqiu", pos: "n.", displayAnswer: "tennis / tennis ball", answers: ["tennis", "tennis ball"] },
+      { hanzi: "汗", pinyin: "hàn", pinyinRaw: "han", pos: "n.", displayAnswer: "sweat / perspiration", answers: ["sweat", "perspiration"] },
+      { hanzi: "尤其", pinyin: "yóuqí", pinyinRaw: "youqi", pos: "adv.", displayAnswer: "especially / particularly", answers: ["especially", "particularly", "in particular", "above all"] },
+      { hanzi: "紧张", pinyin: "jǐnzhāng", pinyinRaw: "jinzhang", pos: "adj.", displayAnswer: "nervous / tense / anxious", answers: ["nervous", "tense", "anxious", "strained", "stressed"] },
+      { hanzi: "过程", pinyin: "guòchéng", pinyinRaw: "guocheng", pos: "n.", displayAnswer: "process / course / progression", answers: ["process", "course", "progression", "procedure"] },
+      { hanzi: "保护", pinyin: "bǎohù", pinyinRaw: "baohu", pos: "v.", displayAnswer: "to protect / safeguard / defend", answers: ["protect", "to protect", "safeguard", "defend", "guard", "preserve", "protection"] },
+      { hanzi: "干", pinyin: "gàn", pinyinRaw: "gan", pos: "v.", displayAnswer: "to do / work / carry on", answers: ["do", "to do", "work", "to work", "act"] },
+      { hanzi: "厉害", pinyin: "lìhai", pinyinRaw: "lihai", pos: "adj.", displayAnswer: "sharp / outstanding / formidable / fierce", answers: ["sharp", "outstanding", "terrific", "awesome", "fierce", "formidable", "intense", "severe"] },
+      { hanzi: "敢", pinyin: "gǎn", pinyinRaw: "gan", pos: "v.", displayAnswer: "dare to / have courage to", answers: ["dare", "dare to", "have courage", "have courage to", "venture"] },
+      { hanzi: "究竟", pinyin: "jiūjìng", pinyinRaw: "jiujing", pos: "adv.", displayAnswer: "on earth / after all / actually", answers: ["on earth", "after all", "actually", "in the end"] },
+      { hanzi: "赢", pinyin: "yíng", pinyinRaw: "ying", pos: "v.", displayAnswer: "to win / beat / gain", answers: ["win", "to win", "beat", "triumph", "gain"] },
+      { hanzi: "来自", pinyin: "láizì", pinyinRaw: "laizi", pos: "v.", displayAnswer: "come from / originate from", answers: ["come from", "originate from", "stem from", "from", "hail from"] },
+      { hanzi: "建议", pinyin: "jiànyì", pinyinRaw: "jianyi", pos: "v./n.", displayAnswer: "suggest / suggestion / advice / recommend", answers: ["suggest", "suggestion", "advice", "recommend", "recommendation", "propose", "proposal"] },
+      { hanzi: "使用", pinyin: "shǐyòng", pinyinRaw: "shiyong", pos: "v.", displayAnswer: "use / employ / apply / utilize", answers: ["use", "to use", "employ", "apply", "utilize"] },
+      { hanzi: "耐心", pinyin: "nàixīn", pinyinRaw: "naixin", pos: "adj./n.", displayAnswer: "patient / patience", answers: ["patient", "patience", "perseverance"] },
+      { hanzi: "仔细", pinyin: "zǐxì", pinyinRaw: "zixi", pos: "adj.", displayAnswer: "careful / meticulous / attentive", answers: ["careful", "meticulous", "attentive", "thorough", "cautious"] },
+      { hanzi: "阅读", pinyin: "yuèdú", pinyinRaw: "yuedu", pos: "v./n.", displayAnswer: "to read / reading", answers: ["read", "to read", "reading"] },
+      { hanzi: "同时", pinyin: "tóngshí", pinyinRaw: "tongshi", pos: "conj./n.", displayAnswer: "meanwhile / at the same time / simultaneously", answers: ["meanwhile", "at the same time", "simultaneously", "concurrently"] },
+      { hanzi: "最好", pinyin: "zuìhǎo", pinyinRaw: "zuihao", pos: "adv.", displayAnswer: "had better / best", answers: ["had better", "best", "better", "it would be best"] },
+      { hanzi: "作用", pinyin: "zuòyòng", pinyinRaw: "zuoyong", pos: "n./v.", displayAnswer: "effect / function / action / role", answers: ["effect", "function", "action", "role", "impact", "influence"] },
+      { hanzi: "至少", pinyin: "zhìshǎo", pinyinRaw: "zhishao", pos: "adv.", displayAnswer: "at least", answers: ["at least", "at the least"] },
+      { hanzi: "标准", pinyin: "biāozhǔn", pinyinRaw: "biaozhun", pos: "n./adj.", displayAnswer: "standard / criterion / benchmark", answers: ["standard", "criterion", "benchmark", "norm"] },
+      { hanzi: "百分之", pinyin: "bǎifēnzhī", pinyinRaw: "baifenzhi", pos: "phrase", displayAnswer: "percent / percentage", answers: ["percent", "percentage", "%"] },
+      { hanzi: "即使", pinyin: "jíshǐ", pinyinRaw: "jishi", pos: "conj.", displayAnswer: "even though / even if", answers: ["even though", "even if", "even", "despite"] },
+      { hanzi: "咳嗽", pinyin: "késou", pinyinRaw: "kesou", pos: "v./n.", displayAnswer: "have a cough / to cough", answers: ["cough", "to cough", "have a cough", "coughing"] },
+      { hanzi: "打针", pinyin: "dǎzhēn", pinyinRaw: "dazhen", pos: "v.", displayAnswer: "have an injection / give a shot", answers: ["have an injection", "injection", "give an injection", "shot", "get a shot", "give a shot", "inject"] }
+    ];
+
+    // Module 6: Newly Requested 60 Vocabulary Words
+    const MODULE_6 = [
+      { hanzi: "应聘", pinyin: "yìngpìn", pinyinRaw: "yingpin", pos: "v.", displayAnswer: "to apply for a job", answers: ["apply for a job", "to apply for a job", "apply for job", "job application", "apply"] },
+      { hanzi: "矿泉水", pinyin: "kuàngquánshuǐ", pinyinRaw: "kuangquanshui", pos: "n.", displayAnswer: "mineral water", answers: ["mineral water", "spring water", "bottled water"] },
+      { hanzi: "垃圾桶", pinyin: "lājītǒng", pinyinRaw: "lajitong", pos: "n.", displayAnswer: "trash can / ash can / dustbin", answers: ["trash can", "ash can", "dustbin", "garbage can", "rubbish bin", "trash bin", "bin"] },
+      { hanzi: "只要", pinyin: "zhǐyào", pinyinRaw: "zhiyao", pos: "conj.", displayAnswer: "so long as / provided / as long as", answers: ["so long as", "provided", "as long as", "only if"] },
+      { hanzi: "放弃", pinyin: "fàngqì", pinyinRaw: "fangqi", pos: "v.", displayAnswer: "to give up / abandon", answers: ["give up", "to give up", "abandon", "quit", "renounce"] },
+      { hanzi: "勇敢", pinyin: "yǒnggǎn", pinyinRaw: "yonggan", pos: "adj.", displayAnswer: "brave / courageous", answers: ["brave", "courageous", "valiant", "fearless"] },
+      { hanzi: "自信", pinyin: "zìxìn", pinyinRaw: "zixin", pos: "adj.", displayAnswer: "confident / self-confident", answers: ["confident", "self-confident", "confidence", "self confident"] },
+      { hanzi: "精彩", pinyin: "jīngcǎi", pinyinRaw: "jingcai", pos: "adj.", displayAnswer: "wonderful / splendid / brilliant", answers: ["wonderful", "splendid", "brilliant", "marvelous", "spectacular"] },
+      { hanzi: "顺利", pinyin: "shùnlì", pinyinRaw: "shunli", pos: "adj.", displayAnswer: "smooth / smoothly / without a hitch", answers: ["smooth", "smoothly", "successful", "without a hitch"] },
+      { hanzi: "结果", pinyin: "jiéguǒ", pinyinRaw: "jieguo", pos: "n.", displayAnswer: "result / outcome", answers: ["result", "outcome", "consequence", "end"] },
+      { hanzi: "通知", pinyin: "tōngzhī", pinyinRaw: "tongzhi", pos: "v.& n.", displayAnswer: "to inform / notification / notice", answers: ["inform", "to inform", "notification", "notice", "notify"] },
+      { hanzi: "盒子", pinyin: "hézi", pinyinRaw: "hezi", pos: "n.", displayAnswer: "box / case", answers: ["box", "case", "casket", "container"] },
+      { hanzi: "整理", pinyin: "zhěnglǐ", pinyinRaw: "zhengli", pos: "v.", displayAnswer: "to put in order / tidy up / arrange", answers: ["put in order", "to put in order", "tidy up", "tidy", "arrange", "sort out", "clean up"] },
+      { hanzi: "熟悉", pinyin: "shúxi", pinyinRaw: "shuxi", pos: "v.", displayAnswer: "to be familiar with / know well", answers: ["familiar", "to be familiar with", "be familiar with", "know well", "familiar with"] },
+      { hanzi: "地点", pinyin: "dìdiǎn", pinyinRaw: "didian", pos: "n.", displayAnswer: "place / site / location", answers: ["place", "site", "location", "spot", "venue"] },
+      { hanzi: "景色", pinyin: "jǐngsè", pinyinRaw: "jingse", pos: "n.", displayAnswer: "scenery / view / landscape", answers: ["scenery", "view", "landscape", "scene"] },
+      { hanzi: "美丽", pinyin: "měilì", pinyinRaw: "meili", pos: "adj.", displayAnswer: "beautiful / pretty", answers: ["beautiful", "pretty", "gorgeous", "lovely"] },
+      { hanzi: "缺少", pinyin: "quēshǎo", pinyinRaw: "queshao", pos: "v.", displayAnswer: "lack / be short of", answers: ["lack", "be short of", "short of", "run short of", "be lacking"] },
+      { hanzi: "十分", pinyin: "shífēn", pinyinRaw: "shifen", pos: "adv.", displayAnswer: "completely / extremely / very", answers: ["completely", "extremely", "very", "fully", "utterly", "totally"] },
+      { hanzi: "理想", pinyin: "lǐxiǎng", pinyinRaw: "lixiang", pos: "n./adj.", displayAnswer: "ideal / dream", answers: ["ideal", "dream", "perfect", "aspiration"] },
+      { hanzi: "对于", pinyin: "duìyú", pinyinRaw: "duiyu", pos: "prep.", displayAnswer: "for / about / regarding / with regard to", answers: ["for", "about", "regarding", "with regard to", "as for", "to"] },
+      { hanzi: "减少", pinyin: "jiǎnshǎo", pinyinRaw: "jianshao", pos: "v.", displayAnswer: "to reduce / decrease / lessen", answers: ["reduce", "to reduce", "decrease", "lessen", "cut down", "lower"] },
+      { hanzi: "梦", pinyin: "mèng", pinyinRaw: "meng", pos: "n.", displayAnswer: "dream", answers: ["dream", "dreams"] },
+      { hanzi: "随便", pinyin: "suíbiàn", pinyinRaw: "suibian", pos: "adj./adv.", displayAnswer: "casual / as you please / whatever", answers: ["casual", "as you please", "whatever", "random", "informal", "free"] },
+      { hanzi: "是否", pinyin: "shìfǒu", pinyinRaw: "shifou", pos: "adv.", displayAnswer: "whether or not / if", answers: ["whether or not", "whether", "if", "is or not"] },
+      { hanzi: "责任", pinyin: "zérèn", pinyinRaw: "zeren", pos: "n.", displayAnswer: "duty / responsibility", answers: ["duty", "responsibility", "liability", "obligation"] },
+      { hanzi: "及时", pinyin: "jíshí", pinyinRaw: "jishi", pos: "adj.& adv.", displayAnswer: "timely / in time", answers: ["timely", "in time", "seasonable", "prompt", "promptly"] },
+      { hanzi: "冷静", pinyin: "lěngjìng", pinyinRaw: "lengjing", pos: "adj.", displayAnswer: "calm / cool-headed", answers: ["calm", "cool-headed", "composed", "sober", "peaceful"] },
+      { hanzi: "解释", pinyin: "jiěshì", pinyinRaw: "jieshi", pos: "v.", displayAnswer: "to explain / explanation", answers: ["explain", "to explain", "explanation", "interpret"] },
+      { hanzi: "偶尔", pinyin: "ǒu'ěr", pinyinRaw: "ouer", pos: "adv.", displayAnswer: "occasionally / once in a while", answers: ["occasionally", "once in a while", "sometimes", "seldom", "from time to time"] },
+      { hanzi: "轻松", pinyin: "qīngsōng", pinyinRaw: "qingsong", pos: "adj.", displayAnswer: "relaxed / easy", answers: ["relaxed", "easy", "lighthearted", "relaxing", "effortless"] },
+      { hanzi: "打扮", pinyin: "dǎban", pinyinRaw: "daban", pos: "v.", displayAnswer: "to dress up / deck out", answers: ["dress up", "to dress up", "deck out", "make up", "adorn"] },
+      { hanzi: "严格", pinyin: "yángé", pinyinRaw: "yange", pos: "adj.", displayAnswer: "strict / rigorous", answers: ["strict", "rigorous", "stringent", "stern", "tight"] },
+      { hanzi: "规定", pinyin: "guīdìng", pinyinRaw: "guiding", pos: "n./v.", displayAnswer: "stipulation / rule / regulation", answers: ["stipulation", "rule", "regulation", "prescribe", "rule", "provisions"] },
+      { hanzi: "后悔", pinyin: "hòuhuǐ", pinyinRaw: "houhui", pos: "v.", displayAnswer: "to regret / repent", answers: ["regret", "to regret", "repent", "rue", "be sorry"] },
+      { hanzi: "所有", pinyin: "suǒyǒu", pinyinRaw: "suoyou", pos: "adj.", displayAnswer: "whole / all / every", answers: ["whole", "all", "every", "all of"] },
+      { hanzi: "全部", pinyin: "quánbù", pinyinRaw: "quanbu", pos: "n./adj.", displayAnswer: "all / whole / entirety", answers: ["all", "whole", "entirety", "complete", "total"] },
+      { hanzi: "加班", pinyin: "jiābān", pinyinRaw: "jiaban", pos: "v.", displayAnswer: "to work overtime", answers: ["work overtime", "to work overtime", "overtime", "extra work"] },
+      { hanzi: "出差", pinyin: "chūchāi", pinyinRaw: "chuchai", pos: "v.", displayAnswer: "to be on a business trip", answers: ["be on a business trip", "business trip", "to be on a business trip", "go on a business trip", "travel for business"] },
+      { hanzi: "旅行", pinyin: "lǚxíng", pinyinRaw: "lvxing", pos: "v./n.", displayAnswer: "to travel / journey / trip", answers: ["travel", "to travel", "trip", "journey", "tour"] },
+      { hanzi: "条件", pinyin: "tiáojiàn", pinyinRaw: "tiaojian", pos: "n.", displayAnswer: "condition / requirement / term", answers: ["condition", "requirement", "term", "prerequisite", "qualification"] },
+      { hanzi: "以为", pinyin: "yǐwéi", pinyinRaw: "yiwei", pos: "v.", displayAnswer: "think / believe (mistakenly)", answers: ["think", "believe", "to think", "to believe", "thought", "assumed"] },
+      { hanzi: "从来", pinyin: "cónglái", pinyinRaw: "conglai", pos: "adv.", displayAnswer: "at all times / always / ever / never", answers: ["at all times", "always", "ever", "never", "from the beginning"] },
+      { hanzi: "任务", pinyin: "rènwu", pinyinRaw: "renwu", pos: "n.", displayAnswer: "mission / task / assignment", answers: ["mission", "task", "assignment", "job", "duty"] },
+      { hanzi: "原因", pinyin: "yuányīn", pinyinRaw: "yuanyin", pos: "n.", displayAnswer: "cause / reason", answers: ["cause", "reason", "origin", "ground"] },
+      { hanzi: "巧克力", pinyin: "qiǎokèlì", pinyinRaw: "qiaokeli", pos: "n.", displayAnswer: "chocolate", answers: ["chocolate", "chocolates"] },
+      { hanzi: "然而", pinyin: "rán'ér", pinyinRaw: "raner", pos: "conj.", displayAnswer: "however / yet / but", answers: ["however", "yet", "but", "nevertheless", "nonetheless"] },
+      { hanzi: "座", pinyin: "zuò", pinyinRaw: "zuo", pos: "m.", displayAnswer: "measure word for bridge, hill, building", answers: ["measure word for bridge", "measure word for building", "measure word for hill", "measure word for bridge hill building", "seat", "measure word"] },
+      { hanzi: "桥", pinyin: "qiáo", pinyinRaw: "qiao", pos: "n.", displayAnswer: "bridge", answers: ["bridge", "bridges"] },
+      { hanzi: "约会", pinyin: "yuēhuì", pinyinRaw: "yuehui", pos: "v./n.", displayAnswer: "to date / appointment / date", answers: ["date", "to date", "appointment", "rendezvous", "meet"] },
+      { hanzi: "礼拜天", pinyin: "lǐbàitiān", pinyinRaw: "libaitian", pos: "n.", displayAnswer: "Sunday", answers: ["sunday"] },
+      { hanzi: "开心", pinyin: "kāixīn", pinyinRaw: "kaixin", pos: "adj.", displayAnswer: "joyful / happy / delighted", answers: ["joyful", "happy", "delighted", "glad", "joyous"] },
+      { hanzi: "俩", pinyin: "liǎ", pinyinRaw: "lia", pos: "num.", displayAnswer: "two persons / both / pair", answers: ["two persons", "two people", "both", "two", "pair"] },
+      { hanzi: "超过", pinyin: "chāoguò", pinyinRaw: "chaoguo", pos: "v.", displayAnswer: "to exceed / surpass / overtake", answers: ["exceed", "to exceed", "surpass", "overtake", "outstrip", "surpass"] },
+      { hanzi: "由于", pinyin: "yóuyú", pinyinRaw: "youyu", pos: "conj.& prep.", displayAnswer: "owing to / due to / because of", answers: ["owing to", "due to", "because of", "because", "thanks to", "since"] },
+      { hanzi: "不得不", pinyin: "bùdébù", pinyinRaw: "budebu", pos: "phrase", displayAnswer: "have no choice but to / have to", answers: ["have no choice but to", "have to", "cannot but", "must", "forced to"] },
+      { hanzi: "排队", pinyin: "páiduì", pinyinRaw: "paidui", pos: "v.", displayAnswer: "to line up / queue up", answers: ["line up", "to line up", "queue", "queue up", "stand in line"] },
+      { hanzi: "浪费", pinyin: "làngfèi", pinyinRaw: "langfei", pos: "v.", displayAnswer: "to waste / squander", answers: ["waste", "to waste", "squander", "dissipate"] },
+      { hanzi: "饺子", pinyin: "jiǎozi", pinyinRaw: "jiaozi", pos: "n.", displayAnswer: "dumplings / dumpling", answers: ["dumplings", "dumpling", "potsticker", "jiaozi"] },
+      { hanzi: "答案", pinyin: "dá'àn", pinyinRaw: "daan", pos: "n.", displayAnswer: "answer / solution / key", answers: ["answer", "solution", "key", "result"] }
+    ];
+
+    let selectedModule = "mod6";
+    let selectedMode = "pinyin";
+    let deck = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let isWaitingNext = false;
+    let hadErrorOnCurrentWord = false;
+
+    let skippedWords = [];
+    let selfCorrectedWords = [];
+
+    // Speech Recognition Setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'zh-CN';
+
+      recognition.onstart = () => {
+        isListening = true;
+        const micBtn = document.getElementById("mic-btn");
+        if (micBtn) micBtn.classList.add("listening");
+        document.getElementById("mic-status-label").textContent = "Listening... Speak clearly in Chinese";
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.trim();
+        document.getElementById("transcription-text").textContent = `Heard: "${transcript}"`;
+        evaluateSpokenWord(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        isListening = false;
+        const micBtn = document.getElementById("mic-btn");
+        if (micBtn) micBtn.classList.remove("listening");
+        document.getElementById("mic-status-label").textContent = "Error listening. Tap to try again";
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        const micBtn = document.getElementById("mic-btn");
+        if (micBtn) micBtn.classList.remove("listening");
+        if (!isWaitingNext) {
+          document.getElementById("mic-status-label").textContent = "Tap microphone to speak";
+        }
+      };
+    }
+
+    document.querySelectorAll('.select-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.dataset.type;
+        const val = btn.dataset.val;
+        document.querySelectorAll(`.select-btn[data-type="${type}"]`).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (type === 'module') selectedModule = val;
+        if (type === 'mode') selectedMode = val;
+      });
+    });
+
+    function normalizePinyin(str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/ɡ/g, "g")
+        .replace(/ɑ/g, "a")
+        .replace(/ü/g, "v")
+        .replace(/['’\s\-]/g, "")
+        .trim();
+    }
+
+    function cleanEnglish(str) {
+      return str
+        .toLowerCase()
+        .replace(/^(to|a|an|the|be|have|have a|give a)\s+/, "")
+        .replace(/[^a-z0-9]/g, "")
+        .trim();
+    }
+
+    function cleanChinese(str) {
+      return str.replace(/[\s\p{P}]/gu, "").trim();
+    }
+
+    function levenshtein(a, b) {
+      const matrix = Array.from({ length: b.length + 1 }, () => []);
+      for (let i = 0; i <= b.length; i++) matrix[i][0] = i;
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    function isCloseMatchEnglish(userInput, acceptedList) {
+      const cleanUser = cleanEnglish(userInput);
+      if (!cleanUser) return false;
+      for (const target of acceptedList) {
+        const cleanTarget = cleanEnglish(target);
+        if (!cleanTarget) continue;
+        if (cleanUser === cleanTarget || cleanTarget.includes(cleanUser) || cleanUser.includes(cleanTarget)) return true;
+        const dist = levenshtein(cleanUser, cleanTarget);
+        if (cleanTarget.length >= 4 && dist <= 1) return true;
+        if (cleanTarget.length >= 7 && dist <= 2) return true;
+      }
+      return false;
+    }
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+      const secs = (totalSeconds % 60).toString().padStart(2, "0");
+      return `${mins}:${secs}`;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      secondsElapsed = 0;
+      document.getElementById("timer-text").textContent = "00:00";
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        document.getElementById("timer-text").textContent = formatTime(secondsElapsed);
+      }, 1000);
+    }
+
+    function showSetupScreen() {
+      stopSpeech();
+      clearInterval(timerInterval);
+      document.getElementById("setup-screen").style.display = "block";
+      document.getElementById("play-screen").style.display = "none";
+      document.getElementById("results-screen").style.display = "none";
+    }
+
+    function startConfiguredGame() {
+      stopSpeech();
+      let rawList = [];
+      if (selectedModule === 'mod1') rawList = MODULE_1;
+      else if (selectedModule === 'mod2') rawList = MODULE_2;
+      else if (selectedModule === 'mod3') rawList = MODULE_3;
+      else if (selectedModule === 'mod4') rawList = MODULE_4;
+      else if (selectedModule === 'mod5') rawList = MODULE_5;
+      else if (selectedModule === 'mod6') rawList = MODULE_6;
+      else if (selectedModule === 'all') {
+        const seen = new Set();
+        rawList = [...MODULE_1, ...MODULE_2, ...MODULE_3, ...MODULE_4, ...MODULE_5, ...MODULE_6].filter(item => {
+          if (seen.has(item.hanzi)) return false;
+          seen.add(item.hanzi);
+          return true;
+        });
+      }
+
+      deck = shuffle(rawList);
+      currentIndex = 0;
+      score = 0;
+      hadErrorOnCurrentWord = false;
+      skippedWords = [];
+      selfCorrectedWords = [];
+
+      document.getElementById("setup-screen").style.display = "none";
+      document.getElementById("results-screen").style.display = "none";
+      document.getElementById("play-screen").style.display = "block";
+      document.getElementById("score-text").textContent = "0";
+
+      updateModeTabsUI();
+      startTimer();
+      loadCard();
+    }
+
+    function switchModeInGame(newMode) {
+      stopSpeech();
+      selectedMode = newMode;
+      updateModeTabsUI();
+      loadCard();
+    }
+
+    function updateModeTabsUI() {
+      ['pinyin', 'meaning', 'hanzi', 'speaking'].forEach(m => {
+        const tab = document.getElementById(`tab-${m}`);
+        if (tab) tab.classList.toggle('active', m === selectedMode);
+      });
+    }
+
+    function stopSpeech() {
+      if (recognition && isListening) {
+        recognition.stop();
+        isListening = false;
+      }
+    }
+
+    function toggleSpeechRecognition() {
+      if (!SpeechRecognition) {
+        alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+        return;
+      }
+      if (isListening) {
+        stopSpeech();
+      } else {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    function loadCard() {
+      stopSpeech();
+
+      if (currentIndex >= deck.length) {
+        endGame();
+        return;
+      }
+
+      isWaitingNext = false;
+      hadErrorOnCurrentWord = false;
+
+      const current = deck[currentIndex];
+      const mainPrompt = document.getElementById("main-prompt");
+      const answerInput = document.getElementById("answer-input");
+      const feedbackText = document.getElementById("feedback-text");
+      const textSection = document.getElementById("text-input-section");
+      const speakingSection = document.getElementById("speaking-section");
+
+      document.getElementById("progress-text").textContent = `${currentIndex + 1} / ${deck.length}`;
+      
+      const pct = (currentIndex / deck.length) * 100;
+      document.getElementById("progress-fill").style.width = `${pct}%`;
+
+      feedbackText.textContent = "";
+      feedbackText.className = "feedback";
+      answerInput.value = "";
+      answerInput.disabled = false;
+      answerInput.classList.remove('error-shake');
+
+      document.getElementById("transcription-text").textContent = "";
+      document.getElementById("mic-status-label").textContent = "Tap microphone to speak";
+
+      if (selectedMode === "pinyin") {
+        textSection.style.display = "flex";
+        speakingSection.style.display = "none";
+        mainPrompt.className = "main-prompt";
+        mainPrompt.textContent = current.hanzi;
+        answerInput.placeholder = "Type pinyin...";
+        answerInput.focus();
+      } else if (selectedMode === "meaning") {
+        textSection.style.display = "flex";
+        speakingSection.style.display = "none";
+        mainPrompt.className = "main-prompt";
+        mainPrompt.textContent = current.hanzi;
+        answerInput.placeholder = "Type meaning...";
+        answerInput.focus();
+      } else if (selectedMode === "hanzi") {
+        textSection.style.display = "flex";
+        speakingSection.style.display = "none";
+        mainPrompt.className = "main-prompt english-mode";
+        mainPrompt.textContent = current.displayAnswer;
+        answerInput.placeholder = "输入汉字 (Type Chinese)...";
+        answerInput.focus();
+      } else if (selectedMode === "speaking") {
+        textSection.style.display = "none";
+        speakingSection.style.display = "block";
+        mainPrompt.className = "main-prompt";
+        mainPrompt.textContent = current.hanzi;
+      }
+    }
+
+    function evaluateSpokenWord(transcript) {
+      if (isWaitingNext) return;
+      const current = deck[currentIndex];
+      const feedback = document.getElementById("feedback-text");
+
+      const cleanUser = cleanChinese(transcript);
+      const cleanTarget = cleanChinese(current.hanzi);
+
+      const isCorrect = (cleanUser === cleanTarget) || cleanUser.includes(cleanTarget);
+
+      if (isCorrect) {
+        if (!hadErrorOnCurrentWord) {
+          score++;
+          document.getElementById("score-text").textContent = score;
+        } else {
+          if (!selfCorrectedWords.some(w => w.hanzi === current.hanzi)) {
+            selfCorrectedWords.push(current);
+          }
+        }
+        feedback.className = "feedback correct";
+        feedback.innerHTML = `✓ Correct pronunciation!`;
+        
+        isWaitingNext = true;
+        setTimeout(() => {
+          currentIndex++;
+          loadCard();
+        }, 900);
+      } else {
+        hadErrorOnCurrentWord = true;
+        feedback.className = "feedback wrong";
+        feedback.textContent = "✗ Incorrect pronunciation, try again!";
+      }
+    }
+
+    function checkAnswer() {
+      if (isWaitingNext) return;
+      const inputVal = document.getElementById("answer-input").value.trim();
+      if (!inputVal) return;
+
+      const current = deck[currentIndex];
+      const feedback = document.getElementById("feedback-text");
+      const input = document.getElementById("answer-input");
+      let isCorrect = false;
+
+      if (selectedMode === "pinyin") {
+        const userClean = normalizePinyin(inputVal);
+        const targetClean = normalizePinyin(current.pinyinRaw || current.pinyin);
+        isCorrect = (userClean === targetClean) || 
+                    (targetClean.includes('v') && userClean === targetClean.replace(/v/g, 'u'));
+      } else if (selectedMode === "meaning") {
+        isCorrect = isCloseMatchEnglish(inputVal, current.answers);
+      } else if (selectedMode === "hanzi") {
+        isCorrect = cleanChinese(inputVal) === cleanChinese(current.hanzi);
+      }
+
+      if (isCorrect) {
+        if (!hadErrorOnCurrentWord) {
+          score++;
+          document.getElementById("score-text").textContent = score;
+        } else {
+          if (!selfCorrectedWords.some(w => w.hanzi === current.hanzi)) {
+            selfCorrectedWords.push(current);
+          }
+        }
+        feedback.className = "feedback correct";
+        feedback.innerHTML = `✓ Correct!`;
+        
+        isWaitingNext = true;
+        input.disabled = true;
+        setTimeout(() => {
+          currentIndex++;
+          loadCard();
+        }, 800);
+      } else {
+        hadErrorOnCurrentWord = true;
+        feedback.className = "feedback wrong";
+        feedback.textContent = "✗ Incorrect, try again!";
+        
+        input.classList.remove('error-shake');
+        void input.offsetWidth;
+        input.classList.add('error-shake');
+        input.select();
+      }
+    }
+
+    function handleSkip() {
+      if (isWaitingNext) return;
+      stopSpeech();
+      const current = deck[currentIndex];
+      if (!skippedWords.some(w => w.hanzi === current.hanzi)) {
+        skippedWords.push(current);
+      }
+
+      const feedback = document.getElementById("feedback-text");
+      feedback.className = "feedback info";
+      feedback.innerHTML = `Skipped: <strong>${current.hanzi}</strong>`;
+      
+      isWaitingNext = true;
+      document.getElementById("answer-input").disabled = true;
+      setTimeout(() => {
+        currentIndex++;
+        loadCard();
+      }, 1200);
+    }
+
+    function endGame() {
+      stopSpeech();
+      clearInterval(timerInterval);
+      document.getElementById("play-screen").style.display = "none";
+      document.getElementById("results-screen").style.display = "block";
+
+      document.getElementById("final-correct").textContent = score;
+      document.getElementById("final-skipped").textContent = skippedWords.length;
+      document.getElementById("final-time").textContent = formatTime(secondsElapsed);
+      document.getElementById("progress-fill").style.width = "100%";
+
+      const skippedWrapper = document.getElementById("skipped-wrapper");
+      const skippedList = document.getElementById("skipped-list");
+      if (skippedWords.length > 0) {
+        skippedList.innerHTML = skippedWords.map(item => `
+          <div class="review-item">
+            <strong>${item.hanzi}</strong> (${item.pinyin}) - ${item.displayAnswer}
+          </div>
+        `).join('');
+        skippedWrapper.style.display = "block";
+      } else {
+        skippedWrapper.style.display = "none";
+      }
+
+      const selfCorrectedWrapper = document.getElementById("self-corrected-wrapper");
+      const selfCorrectedList = document.getElementById("self-corrected-list");
+      if (selfCorrectedWords.length > 0) {
+        selfCorrectedList.innerHTML = selfCorrectedWords.map(item => `
+          <div class="review-item">
+            <strong>${item.hanzi}</strong> (${item.pinyin}) - ${item.displayAnswer}
+          </div>
+        `).join('');
+        selfCorrectedWrapper.style.display = "block";
+      } else {
+        selfCorrectedWrapper.style.display = "none";
+      }
+    }
+
+    document.getElementById("answer-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") checkAnswer();
+    });
+  </script>
+</body>
+</html>
